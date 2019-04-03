@@ -1,3 +1,3 @@
 # TranformationToMonadicForm
 
-# run:  stack exec --package extensible-effects ghci  
+run:  stack exec --package extensible-effects ghci  
