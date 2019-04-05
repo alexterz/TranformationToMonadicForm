@@ -25,7 +25,8 @@ zipWith' z (a:as) (b:bs) = do
                               h <- f b
                               t <- zipWith' z as bs  
                               return (h:t) 
-                       {--      do
+                         {--   
+                              do
                                  h <- f b
                                  t <- zipWith' z as bs  
                                  return (h:t) 
@@ -35,7 +36,7 @@ zipWith' _ _ _  = return []
 
 
 --zipWithEff::(Monad m1, Monad m)=> (a->Eff r ( b-> Eff r c)) -> m ([a] -> m1 ([b] -> Eff r [c]))
-zipWithEff:: (a->Eff r ( b-> Eff r c)) -> Eff r ([a] -> Eff r ([b] -> Eff r [c]))
+zipWithEff:: (a->Eff r ( b-> Eff r c)) -> Eff r1 ([a] -> Eff r2 ([b] -> Eff r [c])) -- or r=r1=r2
 zipWithEff = mConvert2 zipWith'
    
 
@@ -64,17 +65,17 @@ func1 x = do -- The outer Eff r has a different State (s1) from those of the inn
 
 
 --examples
--- When we unwrap the monad, the inner runstate (15::Int) affects the outer monad Eff (s1), which is increased by the incr1.
+-- When we unwrap the monad, the innermost runstate (15::Int) affects the outermost monad Eff (s1), which is increased by the incr1 of func1.
 t1 = run $ runState (0::Int) $ runReader (1::Int) $  (fst (run $ runState (15::Int) $ runReader (100::Int) (func1 5))) 6 
 -- (129,1)
 
-t1' = run $ runState (0::Int) $ runReader (0::Int) $ (zipWith' func1 [0] [0]) 
--- ([3],2)
+t1' = run $ runState (0::Int) $ runReader (1::Int) $ (zipWith' func1 [0,0] [0,0]) 
+-- ([5,9],4)
 
 -- the runstate that affects the result is the outer one (5::Int), which is matched with the inner state of zipWithEff 
 t2 = run $ runState (5::Int) $ runReader (0::Int) $ (fst $ run $ runState (0::Int) $ runReader (0::Int) $ (fst (run $ runState (0::Int) $ runReader (0::Int) $ (zipWithEff func1))) [0]) [0]
 
-
+--([13],7)
 
 
 
