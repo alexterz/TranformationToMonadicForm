@@ -10,6 +10,8 @@ import Control.Eff.Exception
 import Control.Eff.Trace
 import Control.Monad
 import MConvert
+import ForTesting
+
 
 
 
@@ -24,38 +26,29 @@ map' f (h:t) = do
 mapEff:: Monad m => (a-> Eff r b) -> m ([a] -> Eff r [b])
 mapEff = mConvert1 map'
 
---auxiliary functions 
 
-add :: Monad m => m Int -> m Int -> m Int
-add = liftM2 (+)
-
-incr :: Member (State Int) r => Eff r ()
-incr = get >>= put.(+ (1:: Int))
-
---func:: (Member (State Int) r, Member (Reader Int) r) => Int -> Eff r Int
-func x = do 
-           incr
-           let sum1 = ask `add` return x
-           sum1 `add` get 
 
 --examples with map'
 
 t1 = run $ runReader (10::Int) (map' f [1..5])
      where f x = ask `add` return x
+--[11,12,13,14,15]
 
+-- totalAdd imported from ForTesting, i sthe function that giving a x, returns the (x + Env + (s+1)), and increases the state 
 
-t2 = run $ runState (5::Int) $ runReader (10::Int) $ map'  func [1..5]
-
+t2 = run $ runState (5::Int) $ runReader (10::Int) $ map'  totalAdd [1..5]
+--([17,19,21,23,25],10)
 
 --examples with mapNew
 
 --t3 :: ([Int] -> Eff' [Reader Int, State Int] [Int], Int)
 
-t3 = fst $ run $ runState (5::Int) $ runReader (10::Int) $ mapEff  func 
+t3 = fst $ run $ runState (5::Int) $ runReader (10::Int) $ mapEff  totalAdd 
 
 t3'=  run $ runState (5::Int) $ runReader (10::Int) $ t3 [1..5]
+--([17,19,21,23,25],10)
 
-{--
+{-- for IO monad
 map'':: (Monad m,SetMember Lift (Lift m) r)=> (a-> m b) -> [a] -> Eff r [b]
 map'' f [] = return []
 map'' f (h:t) = do

@@ -10,6 +10,7 @@ import Control.Eff.Exception
 import Control.Eff.Trace
 import Control.Monad
 import MConvert
+import ForTesting
 
 
 {--
@@ -40,40 +41,20 @@ zipWithEff:: (a->Eff r ( b-> Eff r c)) -> Eff r1 ([a] -> Eff r2 ([b] -> Eff r [c
 zipWithEff = mConvert2 zipWith'
    
 
---auxiliary functions
-
-add :: Monad m => m Int -> m Int -> m Int
-add = liftM2 (+)
-
-incr :: Member (State Int) r => Eff r ()
-incr = get >>= put.(+ (1:: Int))
-
-
---func:: (Member (State Int) r, Member (Reader Int) r) => Int -> Eff r Int
-func x = do 
-           incr --incr2: increases the s2
-           let sum1 = ask `add` return x
-           sum1 `add` get 
-
-func1:: (Member (State Int) r, Member (Reader Int) r) => Int -> Eff r (Int -> Eff r Int)
-func1 x = do -- The outer Eff r has a different State (s1) from those of the inner one Eff (s2).
-           incr -- incr1 :increases the s1. 
-           h <- (ask `add` return x) `add` get   
-           let 
-               f y = func y `add` return h
-           return f
-
 
 --examples
--- When we unwrap the monad, the innermost runstate (15::Int) affects the outermost monad Eff (s1), which is increased by the incr1 of func1.
-t1 = run $ runState (0::Int) $ runReader (1::Int) $  (fst (run $ runState (15::Int) $ runReader (100::Int) (func1 5))) 6 
+
+--combTotalAdd imported from ForTesting, is the function that giving  x, y , returns the (x+y+env1+env2+s1+1+s2+1), and increases both states (s1,s2)
+
+-- When we unwrap the monad, the innermost runstate (15::Int) affects the outermost monad Eff (s1), which is increased by the incr1 of combTotalAdd.
+t1 = run $ runState (0::Int) $ runReader (1::Int) $  (fst (run $ runState (15::Int) $ runReader (100::Int) (combTotalAdd 5))) 6 
 -- (129,1)
 
-t1' = run $ runState (0::Int) $ runReader (1::Int) $ (zipWith' func1 [0,0] [0,0]) 
+t1' = run $ runState (0::Int) $ runReader (1::Int) $ (zipWith' combTotalAdd [0,0] [0,0]) 
 -- ([5,9],4)
 
 -- the runstate that affects the result is the outer one (5::Int), which is matched with the inner state of zipWithEff 
-t2 = run $ runState (5::Int) $ runReader (0::Int) $ (fst $ run $ runState (0::Int) $ runReader (0::Int) $ (fst (run $ runState (0::Int) $ runReader (0::Int) $ (zipWithEff func1))) [0]) [0]
+t2 = run $ runState (5::Int) $ runReader (0::Int) $ (fst $ run $ runState (0::Int) $ runReader (0::Int) $ (fst (run $ runState (0::Int) $ runReader (0::Int) $ (zipWithEff combTotalAdd))) [0]) [0]
 
 --([13],7)
 
