@@ -20,6 +20,9 @@ foldr f z []     =  z
 foldr f z (x:xs) =  f x (foldr f z xs)
 --}
 
+--foldr'' ::Monad m => (a-> m (b -> m b)) -> b -> [a] -> m b
+foldr'' f z [] = return z
+foldr'' f z (x:xs) = foldr' f z xs >>= \y -> f x >>= \g -> g y >>= \h -> return h 
 
 --foldr' ::Monad m => (a-> m (b -> m b)) -> b -> [a] -> m b
 foldr' ::(a-> Eff r (b -> Eff r b)) -> b -> [a] -> Eff r b
@@ -56,4 +59,8 @@ t1' = run $ runState (0::Int) $ runReader (1::Int) $ t1  -- addEnvState 0 (1+1+0
 t2 = run $ runState (5::Int) $ runReader (0::Int) $ ( run $ (fst (run $ runState (0::Int) $ (foldrEff addEnvState))) 0) [0,5]
 --(18,7)
 
-                                 
+
+
+                            
+
+    

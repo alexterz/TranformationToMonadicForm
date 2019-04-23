@@ -20,3 +20,8 @@ mConvert2 f x = return $ mConvert1 $ f x
 --και ού το κάθε εξής.. άρα τώρα πρέπει να φτιάξω μια αναδρομική συνάρτηση που να καλεί την mConvert(i-1) για τον υπολογισμός της mConvert (i)
 mConvert3 :: (Monad m, Monad m1, Monad m2) =>(t -> t2 -> t1 -> a) -> t -> m (t2 -> m1 (t1 -> m2 a))
 mConvert3 f x =return $ mConvert2 $ f x
+
+{--
+mConvert 1 f x = return (f x)
+mConvert i f x = return $ mConvert (i-1) $ f x 
+--}

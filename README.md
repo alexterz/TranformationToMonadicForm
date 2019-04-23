@@ -31,7 +31,7 @@ form, that are used as input to the higher order functions (map, zipWith,
 fold, etc.)
 
 Each higher order function has been tested under its implementation.
-You can run the corresponded `ti` to see the result.
+You can run the corresponding test `ti` to see the result.
 
 
 ## Background

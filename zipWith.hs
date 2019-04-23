@@ -39,7 +39,6 @@ zipWith' _ _ _  = return []
 --zipWithEff::(Monad m1, Monad m)=> (a->Eff r ( b-> Eff r c)) -> m ([a] -> m1 ([b] -> Eff r [c]))
 zipWithEff:: (a->Eff r ( b-> Eff r c)) -> Eff r1 ([a] -> Eff r2 ([b] -> Eff r [c])) -- or r=r1=r2
 zipWithEff = mConvert2 zipWith'
-   
 
 
 --examples
