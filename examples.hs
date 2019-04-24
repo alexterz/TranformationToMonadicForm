@@ -16,5 +16,5 @@ add'' add = add 5 >>= \g2 -> g2 6 >>= \h -> return h
 
 -- προβλημα αν expr = literal
 
-t:: Monad m => m Int
+--t:: Monad m => m Int
 --t = 5 >>=  \h -> return h 
