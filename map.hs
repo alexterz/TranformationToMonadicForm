@@ -20,7 +20,7 @@ map f (x:xs) = f x : map f xs
 --}
 map'':: (a-> Eff r b) -> [a] -> Eff r [b]
 map'' f [] = return []
-map'' f (h:t) = map' f t >>= \t' -> (f h >>= \h' -> return (h':t') )
+map'' f (h:t) = map'' f t >>= \t' -> (f h >>= \h' -> return (h':t') )
 
 
 map':: (a-> Eff r b) -> [a] -> Eff r [b]
