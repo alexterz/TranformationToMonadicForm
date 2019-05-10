@@ -51,7 +51,7 @@ import Control.Monad.Except
 %%
 
 -- let VAR '=' Expr in Expr    { App (Lam $2 $6) $4 }
-Expr : let Dclr in Expr            { Let $2 $4} 
+Expr : let Dclrs in Expr           { Let $2 $4} 
      | '\\' VAR '->' Expr          { Lam $2 $4 }
      | Form                        { $1 }
 
@@ -71,10 +71,10 @@ Atom : '(' Expr ')'                { $2 }
      | false                       { Lit (LBool False) }
 
 --etsi den mporw na exw ena declr mesa se agkyles
---Dcls : '{' Dclr ';' Dcls '}'      {;}
---   |  Dclr                      {$1}
+Dclrs :  Dclrs ';' Dclr            { Dclrs $1 $3}
+      |  Dclr                      { Dclr $1}
 
-Dclr : VAR '=' Expr               { Assign $1 $3 }
+Dclr : VAR '=' Expr                { Assign $1 $3 }
 
 
 
