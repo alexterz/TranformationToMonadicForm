@@ -43,14 +43,13 @@ eval env expr = case expr of
 -- takes a list of declarations and an env and returns an updated env'
 assign:: [Dclr] -> Scope ->Eval Scope 
 assign [] env = return env
-assign (x:xs) env = case x of 
-                    Assign name expr' ->      
-                               let  value =  runExcept $ eval env expr'
-                               in   case value of 
-                                       Left err -> throwError "Error on the assigned expression in declaration"
-                                       Right val -> assign xs env'
-                                                 where 
-                                                    env' = extend env name val  --mhpws gia anadromh thelei kai sto right hand env'
+assign ((Assign name expr'):xs) env = 
+                     let  value =  runExcept $ eval env expr'
+                     in   case value of 
+                              Left err -> throwError "Error on the assigned expression in declaration"
+                              Right val -> assign xs env'
+                                       where 
+                                       env' = extend env name val  --mhpws gia anadromh thelei kai sto right hand env'
 
 
 binop :: Binop -> Value -> Value -> Eval Value
