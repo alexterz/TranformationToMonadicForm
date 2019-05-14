@@ -5,20 +5,15 @@ type Name = String
 data Expr
   = Lam Name Expr
   | App Expr Expr
-  | Let Dclrs Expr
+  | Let [Dclr] Expr --uses Parsing sequences
   | Var Name
   | Lit Lit
   | Op Binop Expr Expr
   deriving (Eq,Show)
- 
-
-data Dclrs 
-  = Dclr Dclr
-  | Dclrs Dclrs Dclr
-  deriving (Eq,Show)  
+   
 
 data Dclr 
-  = Assign String Expr
+  = Assign Name Expr
   deriving (Eq,Show)
 
 data Lit

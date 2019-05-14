@@ -35,6 +35,23 @@ eval env expr = case expr of
     x <- eval env a
     y <- eval env b
     binop op x y
+  Let dclrs expr ->
+    case dclrs of
+      [Assign name expr']   -> let  value =  runExcept $ eval env expr'
+                               in   case value of 
+                                          Left err -> throwError "Error on the assigned expression in declaration"
+                                          Right val -> eval env' expr 
+                                                       where 
+                                                          env' = extend env name val  --mhpws gia anadromh thelei kai sto right hand env'
+    
+
+
+
+
+                                            
+                                
+  --    (Assign name expr':xs) ->
+ 
 
 binop :: Binop -> Value -> Value -> Eval Value
 binop Add (VInt a) (VInt b) = return $ VInt (a+b)
@@ -43,9 +60,11 @@ binop Mul (VInt a) (VInt b) = return $ VInt (a*b)
 binop Eql (VInt a) (VInt b) = return $ VBool (a==b)
 binop _ _ _ = throwError "Tried to do arithmetic operation over non-number"
 
-extend :: Scope -> String -> Value -> Scope
+-- updates the env
+extend :: Scope -> String -> Value -> Scope 
 extend env v t = Map.insert v t env
 
+--apply the function to the new env
 apply :: Value -> Value -> Eval Value
 apply (VClosure v t0 e) t1 = eval (extend e v t1) t0
 apply _ _  = throwError "Tried to apply closure"

@@ -50,10 +50,11 @@ import Control.Monad.Except
 %left '*'
 %%
 
--- let VAR '=' Expr in Expr    { App (Lam $2 $6) $4 }
+
 Expr : let Dclrs in Expr           { Let $2 $4} 
      | '\\' VAR '->' Expr          { Lam $2 $4 }
      | Form                        { $1 }
+--     | Dclr
 
 
 Form : Form '+' Form               { Op Add $1 $3 }
@@ -70,9 +71,10 @@ Atom : '(' Expr ')'                { $2 }
      | true                        { Lit (LBool True) }
      | false                       { Lit (LBool False) }
 
---etsi den mporw na exw ena declr mesa se agkyles
-Dclrs :  Dclrs ';' Dclr            { Dclrs $1 $3}
-      |  Dclr                      { Dclr $1}
+--Declarations are of the form Dclr;...;Dclr
+Dclrs :  Dclrs ';' Dclr            { $3 : $1 }
+      |  Dclr                      { [$1] }
+
 
 Dclr : VAR '=' Expr                { Assign $1 $3 }
 
