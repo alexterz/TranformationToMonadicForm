@@ -26,6 +26,8 @@ dependencies:
 - containers
 - haskeline
 - transformers
+- extensible-effects
+
 
 
 
