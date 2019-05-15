@@ -45,14 +45,14 @@ import Control.Monad.Except
     '{'   { TokenLBracket}
     '}'   { TokenRBracket}
 
--- Operators
+-- Osperators
 %left '+' '-'
 %left '*'
 %%
 
 
 Expr : let Dclrs in Expr           { Let $2 $4} 
-     | '\\' VAR '->' Expr          { Lam $2 $4 }
+     | '\\' Vars '->' Expr         { Lam $2 $4 }
      | Form                        { $1 }
 --     | Dclr
 
@@ -77,8 +77,15 @@ Dclrs :  Dclrs ';' Dclr            { $3 : $1 }
 
 
 Dclr : VAR '=' Expr                { Assign $1 $3 }
+--     | VAR Apats '=' Expr          { FunDclr $2 $4}
 
+--Apats: Apat Apats                  {$1: $2}
+--     | {-empty-}                   {[]} -- edw den eimai sigourh an thelw panta lista
 
+--Apat : VAR                         {Var $1} ---allooooooooooooooooooooooooooooooooooooooo
+
+Vars: VAR Vars                     {$1: $2}
+    | VAR                          {[$1]} 
 
 
 {

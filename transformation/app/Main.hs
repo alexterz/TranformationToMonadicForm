@@ -15,7 +15,7 @@ process input = do
     Left err -> do
       putStrLn "Parse Error:"
       print err
-    Right ast -> exec ast --putStrLn "OK!"--
+    Right ast -> exec ast -- putStrLn "OK!"--
 
 exec :: Expr -> IO ()
 exec ast = do
