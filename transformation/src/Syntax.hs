@@ -4,6 +4,7 @@ type Name = String
 
 data Expr
   = Lam [Name] Expr
+--  | Dclr Dclr
   | App Expr Expr
   | Let [Dclr] Expr --uses Parsing sequences
   | Var Name
@@ -14,14 +15,9 @@ data Expr
 
 data Dclr 
   = Assign Name Expr
-  deriving (Eq,Show)
- {-- | FuncDclr Names Expr--Rhs  
+--  | FuncDclr Name [Name] Expr--Rhs
   deriving (Eq,Show)
 
-data Names 
-  = Name [Name]
-  | Name   
--}
 data Lit
   = LInt Int
   | LBool Bool

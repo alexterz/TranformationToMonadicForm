@@ -50,11 +50,11 @@ import Control.Monad.Except
 %left '*'
 %%
 
-
+--let VAR '=' Expr in Expr    { App (Lam $2 $6) $4 }
 Expr : let Dclrs in Expr           { Let $2 $4} 
      | '\\' Vars '->' Expr         { Lam $2 $4 }
      | Form                        { $1 }
---     | Dclr
+--     | Dclr                        { $1 } 
 
 
 Form : Form '+' Form               { Op Add $1 $3 }
@@ -77,15 +77,17 @@ Dclrs :  Dclrs ';' Dclr            { $3 : $1 }
 
 
 Dclr : VAR '=' Expr                { Assign $1 $3 }
---     | VAR Apats '=' Expr          { FunDclr $2 $4}
+     | VAR Args '=' Expr           { Assign $1 (Lam $2 $4)}
 
---Apats: Apat Apats                  {$1: $2}
---     | {-empty-}                   {[]} -- edw den eimai sigourh an thelw panta lista
 
---Apat : VAR                         {Var $1} ---allooooooooooooooooooooooooooooooooooooooo
-
+-- edw prepei na valw kai to '_' gia lamda expr
 Vars: VAR Vars                     {$1: $2}
     | VAR                          {[$1]} 
+
+
+Args: VAR Args                     {$1: $2}
+    | {-empty-}                    {[]}  
+
 
 
 {

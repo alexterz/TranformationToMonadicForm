@@ -66,15 +66,13 @@ binop _ _ _ = throwError "Tried to do arithmetic operation over non-number"
 -- updates the env
 extend :: Scope -> String -> Value -> Scope 
 extend env v t = Map.insert v t env
---extend env [v] (Values [t]) = Map.insert v t env 
---extend env (v:vs) (Values (t:ts)) = let env' = Map.insert v t env
---                                    in  extend env' vs (Values ts)  
---extend env _ _ = env
+
 
 --apply the function to the new env
 apply :: Value -> Value -> Eval Value
 apply (VClosure [v] t0 e) t1 = eval (extend e v t1) t0
 apply (VClosure (v:vs) t0 e) t1 = eval (extend e v t1) (Lam vs t0) -- this is for partial application
+--apply (VClosure '_' t0 e) t1 = eval env t0
 apply _ _  = throwError "Tried to apply closure"
 
 emptyScope :: Scope
