@@ -1,6 +1,6 @@
-import Syntax (Expr)
-import Eval (runEval)
-import Parser (parseExpr, parseTokens)
+import Syntax (Expr,Dclr)
+import Eval (runEval,runMain)
+import Parser (parseExpr,parseDclr,parseTokens)
 
 import Control.Monad.Trans
 import System.Console.Haskeline
@@ -10,12 +10,23 @@ process input = do
   let tokens = parseTokens input
   putStrLn ("Tokens: " ++ show tokens)
   let ast = parseExpr input
-  putStrLn ("Syntax: " ++ show ast)
-  case ast of
+  putStrLn ("Syntax Expr: " ++ show ast)
+  let mainAst = parseDclr input
+  putStrLn ("Syntax Dclr: " ++ show mainAst)
+  case mainAst of
     Left err -> do
       putStrLn "Parse Error:"
       print err
-    Right ast -> exec ast -- putStrLn "OK!"--
+    Right ast -> execMain ast --putStrLn "OK!"--
+
+execMain :: [Dclr] -> IO ()
+execMain ast = do
+  let result = runMain ast
+  case result of
+    Left err -> do
+      putStrLn "Runtime Error:"
+      putStrLn err
+    Right res -> print res
 
 exec :: Expr -> IO ()
 exec ast = do

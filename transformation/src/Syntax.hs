@@ -18,6 +18,9 @@ data Dclr
 --  | FuncDclr Name [Name] Expr--Rhs
   deriving (Eq,Show)
 
+type Dclrs = [Dclr]
+
+
 data Lit
   = LInt Int
   | LBool Bool

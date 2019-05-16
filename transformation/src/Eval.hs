@@ -1,5 +1,6 @@
 module Eval (
   runEval,
+  runMain 
 ) where
 
 import Syntax
@@ -11,7 +12,7 @@ data Value
   = VInt Integer
   | VBool Bool
   | VClosure [String] Expr (Eval.Scope)
---  | Values [Value]
+-- | Values [Value]
 
 
 
@@ -24,6 +25,18 @@ instance Show Value where
 type Eval t = Except String t
 
 type Scope = Map.Map String Value
+
+
+
+runMain :: [Dclr] -> Either String Value
+runMain x = runExcept $ evalMain emptyScope x
+
+evalMain :: Eval.Scope -> [Dclr] -> Eval Value
+--given some declarations, evaluates the last one (e.g main)
+evalMain env [(Assign name expr)] = eval env expr
+evalMain env (x:xs) = do 
+                      env' <- assign [x] env
+                      evalMain env' xs 
 
 eval :: Eval.Scope -> Expr -> Eval Value
 eval env expr = case expr of

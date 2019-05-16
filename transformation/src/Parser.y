@@ -3,6 +3,7 @@
 
 module Parser (
   parseExpr,
+  parseDclr,
   parseTokens,
 ) where
 
@@ -17,6 +18,7 @@ import Control.Monad.Except
 
 -- Entry point
 %name expr
+%name dclr Dclrs
 
 -- Lexer structure 
 %tokentype { Token }
@@ -72,8 +74,9 @@ Atom : '(' Expr ')'                { $2 }
      | false                       { Lit (LBool False) }
 
 --Declarations are of the form Dclr;...;Dclr
-Dclrs :  Dclrs ';' Dclr            { $3 : $1 }
-      |  Dclr                      { [$1] }
+Dclrs :  Dclr ';' Dclrs            { $1 : $3 } -- that's way we can declare something first that we will use later, but not the opposite
+      |  Dclr                      { [$1] }    -- , so order matters... :(
+--      |  Dclrs ';' Dclr            { $3 : $1 }
 
 
 Dclr : VAR '=' Expr                { Assign $1 $3 }
@@ -95,6 +98,11 @@ Args: VAR Args                     {$1: $2}
 parseError :: [Token] -> Except String a
 parseError (l:ls) = throwError (show l)
 parseError [] = throwError "Unexpected end of Input"
+
+parseDclr ::String -> Either String Dclrs
+parseDclr input = runExcept $ do
+  tokenStream <- scanTokens input
+  dclr tokenStream 
 
 parseExpr :: String -> Either String Expr
 parseExpr input = runExcept $ do
