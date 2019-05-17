@@ -2,6 +2,7 @@ module Syntax where
 
 type Name = String
 
+type Ar= Integer
 
 data Expr
   = Lam [Name] Expr
