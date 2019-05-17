@@ -2,6 +2,7 @@ module Syntax where
 
 type Name = String
 
+
 data Expr
   = Lam [Name] Expr
 --  | Dclr Dclr
