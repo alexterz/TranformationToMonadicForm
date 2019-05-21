@@ -46,6 +46,7 @@ import Control.Monad.Except
     ';'   { TokenSemicolon}
     '{'   { TokenLBracket}
     '}'   { TokenRBracket}
+    '_'   { TokenUnderScore }
 
 -- Osperators
 %left '+' '-'
@@ -53,10 +54,10 @@ import Control.Monad.Except
 %%
 
 --let VAR '=' Expr in Expr    { App (Lam $2 $6) $4 }
-Expr : let Dclrs in Expr           { Let $2 $4} 
-     | '\\' Vars '->' Expr         { Lam $2 $4 }
-     | Form                        { $1 }
---     | Dclr                        { $1 } 
+Expr : let Dclrs in Expr            { Let $2 $4} 
+     | '\\' Apats '->' Expr         { Lam $2 $4 }
+     | Form                         { $1 }
+
 
 
 Form : Form '+' Form               { Op Add $1 $3 }
@@ -67,11 +68,11 @@ Form : Form '+' Form               { Op Add $1 $3 }
 Fact : Fact Atom                   { App $1 $2 }
      | Atom                        { $1 }
 
-Atom : '(' Expr ')'                { $2 }
-     | NUM                         { Lit (LInt $1) }
-     | VAR                         { Var $1 }
-     | true                        { Lit (LBool True) }
-     | false                       { Lit (LBool False) }
+Atom :'(' Expr ')'                 {  $2 }
+     | NUM                         { Apat ( Lit (LInt $1)) }
+     | VAR                         { Apat (Var $1) }
+     | true                        { Apat (Lit (LBool True)) }
+     | false                       { Apat (Lit (LBool False)) }
 
 --Declarations are of the form Dclr;...;Dclr
 Dclrs :  Dclr ';' Dclrs            { $1 : $3 } -- that's way we can declare something first that we will use later, but not the opposite
@@ -80,18 +81,17 @@ Dclrs :  Dclr ';' Dclrs            { $1 : $3 } -- that's way we can declare some
 
 
 Dclr : VAR '=' Expr                { Assign $1 $3 }
-     | VAR Args '=' Expr           { Assign $1 (Lam $2 $4)}
+     | VAR Apats '=' Expr          { Assign $1 (Lam $2 $4)}
 
 
--- edw prepei na valw kai to '_' gia lamda expr
-Vars: VAR Vars                     {$1: $2}
-    | VAR                          {[$1]} 
+Apats: Apat Apats                   { $1 : $2 }
+     | {-empty-}                    {[]} 
 
 
-Args: VAR Args                     {$1: $2}
-    | {-empty-}                    {[]}  
-
-
+Apat : VAR                          { Var $1}
+     | NUM                          { Lit (LInt $1) }
+--     | '_'                          { } -- kapws prepei na to ftiaxw gia underscore
+ 
 
 {
 

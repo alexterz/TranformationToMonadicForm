@@ -2,15 +2,13 @@ module Syntax where
 
 type Name = String
 
-type Ar= Integer
+type Dclrs = [Dclr]
 
 data Expr
-  = Lam [Name] Expr
---  | Dclr Dclr
+  = Lam [Apats] Expr-- Apat
   | App Expr Expr
   | Let [Dclr] Expr --uses Parsing sequences
-  | Var Name
-  | Lit Lit
+  | Apat Apats
   | Op Binop Expr Expr
   deriving (Eq,Show)
    
@@ -20,8 +18,11 @@ data Dclr
 --  | FuncDclr Name [Name] Expr--Rhs
   deriving (Eq,Show)
 
-type Dclrs = [Dclr]
 
+data Apats  
+    = Var Name
+    | Lit Lit 
+    deriving (Eq,Show)
 
 data Lit
   = LInt Int

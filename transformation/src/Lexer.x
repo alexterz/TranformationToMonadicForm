@@ -45,6 +45,7 @@ tokens :-
   \;                            { \s -> TokenSemicolon}
   \{                            { \s -> TokenLBracket}
   \}                            { \s -> TokenRBracket}
+  \_                            { \s -> TokenUnderScore}
 
 {
 
@@ -67,6 +68,7 @@ data Token
   | TokenLBracket
   | TokenRBracket
   | TokenEOF
+  | TokenUnderScore 
   deriving (Eq,Show)
 
 scanTokens :: String -> Except String [Token]

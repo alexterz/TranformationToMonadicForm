@@ -11,7 +11,7 @@ import qualified Data.Map as Map
 data Value
   = VInt Integer
   | VBool Bool
-  | VClosure [String] Expr (Eval.Scope)
+  | VClosure [Apats] Expr (Eval.Scope)
 -- | Values [Value]
 
 
@@ -40,9 +40,9 @@ evalMain env (x:xs) = do
 
 eval :: Eval.Scope -> Expr -> Eval Value
 eval env expr = case expr of
-  Lit (LInt x) -> return $ VInt (fromIntegral x)
-  Lit (LBool x) -> return $ VBool x
-  Var x -> return $ env Map.! x
+  Apat (Lit (LInt x)) -> return $ VInt (fromIntegral x)
+  Apat (Lit (LBool x)) -> return $ VBool x
+  Apat (Var x) -> return $ env Map.! x
   Lam x body -> return (VClosure x body env)
   App a b -> do
     x <- eval env a
@@ -66,7 +66,7 @@ assign ((Assign name expr'):xs) env =
                               Left err -> throwError "Error on the assigned expression in declaration"
                               Right val -> assign xs env'
                                        where 
-                                       env' = extend env name val  --mhpws gia anadromh thelei kai sto right hand env'
+                                       env' = extend env (Var name) val  --mhpws gia anadromh thelei kai sto right hand env'
 
 
 binop :: Binop -> Value -> Value -> Eval Value
@@ -77,8 +77,10 @@ binop Eql (VInt a) (VInt b) = return $ VBool (a==b)
 binop _ _ _ = throwError "Tried to do arithmetic operation over non-number"
 
 -- updates the env
-extend :: Scope -> String -> Value -> Scope 
-extend env v t = Map.insert v t env
+extend :: Scope -> Apats -> Value -> Scope 
+extend env v t = case v of 
+                  Var name -> Map.insert name t env
+                  otherwise -> env
 
 
 --apply the function to the new env
