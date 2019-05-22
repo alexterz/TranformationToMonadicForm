@@ -14,7 +14,7 @@ data Expr
    
 
 data Dclr 
-  = Assign Name Expr
+  = Assign Name [Apats] Expr
 --  | FuncDclr Name [Name] Expr--Rhs
   deriving (Eq,Show)
 

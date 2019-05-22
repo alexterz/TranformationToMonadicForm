@@ -80,8 +80,8 @@ Dclrs :  Dclr ';' Dclrs            { $1 : $3 } -- that's way we can declare some
 --      |  Dclrs ';' Dclr            { $3 : $1 }
 
 
-Dclr : VAR '=' Expr                { Assign $1 $3 }
-     | VAR Apats '=' Expr          { Assign $1 (Lam $2 $4)}
+Dclr : VAR '=' Expr                { Assign $1 [] $3 } --den xreiazetai
+     | VAR Apats '=' Expr          { Assign $1 $2 (Lam $2 $4)}
 
 
 Apats: Apat Apats                   { $1 : $2 }
