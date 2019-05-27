@@ -26,7 +26,9 @@ execMain ast = do
     Left err -> do
       putStrLn "Runtime Error:"
       putStrLn err
-    Right res -> print res
+    Right (l:ls) -> print l
+    otherwise -> do
+                  putStrLn "Runtime Error: Non-exhaustive patterns"
 
 exec :: Expr -> IO ()
 exec ast = do
