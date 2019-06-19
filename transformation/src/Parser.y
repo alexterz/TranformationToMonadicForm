@@ -81,7 +81,7 @@ Dclrs :  Dclr ';' Dclrs            { $1 : $3 } -- that's way we can declare some
 
 
 Dclr : VAR '=' Expr                { Assign $1 [] $3 } --den xreiazetai
-     | VAR Apats '=' Expr          { Assign $1 ((Var $1):$2) (Lam ((Var $1):$2) $4)} --{ Assign $1 $2 (Lam $2 $4)} --
+     | VAR Apats '=' Expr          { Assign $1 $2 (Lam $2 $4)} -- { Assign $1 ((Var $1):$2) (Lam ((Var $1):$2) $4)} --
 
 
 Apats: Apat Apats                   { $1 : $2 }

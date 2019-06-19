@@ -5,7 +5,7 @@ type Name = String
 type Dclrs = [Dclr]
 
 data Expr
-  = Lam [Apats] Expr-- Apat
+  = Lam [Apats] Expr
   | App Expr Expr
   | Let [Dclr] Expr --uses Parsing sequences
   | Apat Apats

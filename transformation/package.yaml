@@ -27,6 +27,7 @@ dependencies:
 - haskeline
 - transformers
 - extensible-effects
+- extra
 
 
 
