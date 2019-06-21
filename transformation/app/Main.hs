@@ -1,5 +1,5 @@
 import Syntax (Expr,Dclr)
-import Eval (runEval,runMain)
+import Eval (runMain)
 import Parser (parseExpr,parseDclr,parseTokens)
 
 import Control.Monad.Trans
@@ -29,15 +29,6 @@ execMain ast = do
     Right (l:ls) -> print l
     otherwise -> do
                   putStrLn "Runtime Error: Non-exhaustive patterns"
-
-exec :: Expr -> IO ()
-exec ast = do
-  let result = runEval ast
-  case result of
-    Left err -> do
-      putStrLn "Runtime Error:"
-      putStrLn err
-    Right res -> print res
 
 main :: IO ()
 main = runInputT defaultSettings loop

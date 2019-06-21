@@ -1,5 +1,4 @@
 module Eval (
-  runEval,
   runMain 
 ) where
 
@@ -13,7 +12,13 @@ import qualified Data.Map as Map
 data Value = Value [Apats] Expr Env
 
 instance Show Value where
-  show (Value l expr env) =  "<<value>>: /"++show l ++"->" ++ show expr
+  show (Value l expr env) = 
+    case l of
+     []-> case expr of
+            Apat (Lit (LInt num)) -> show num
+            Apat (Lit (LBool b))  -> show b
+     otherwise->
+           "<<value>>: /"++show l ++"->" ++ show expr 
 
 type Env = Map.Map String [Value]
 
@@ -22,8 +27,6 @@ emptyEnv = Map.empty
 
 type Eval t = Except String t
 
-runEval :: Expr -> Either String [Value]
-runEval x = runExcept $ eval emptyEnv x
 
 runMain :: [Dclr] -> Either String [Value]
 runMain ds = runExcept $ eval env $ Apat (Var name)
@@ -47,7 +50,7 @@ assign (Assign name args expr : ds) env = extendDef envRest name thisValue
 extendDef :: Env -> String -> Value -> Env 
 extendDef env name val =
   case Map.lookup name env of
-    Just l -> Map.insert name (val : l) env
+    Just l -> Map.insert name (val : l) env 
     Nothing -> Map.insert name [val] env
 
 eval :: Env -> Expr -> Eval [Value]
@@ -55,7 +58,7 @@ eval env e@(Apat (Lit _)) = return [Value [] e env]
 eval env (Apat (Var x)) =
   case Map.lookup x env of
     Just values -> force values
-    Nothing -> throwError ("Can't find Variable "++ show x ++ " in the env " ++ show env)
+    Nothing -> throwError ("Can't find Variable "++ show x)
 eval env (Lam xs body) = return [Value xs body env]
 eval env (App a b) = do
   values <- eval env a
@@ -93,7 +96,7 @@ apply values expr = walk values expr >>= force
         walk (Value [] _ _ : _) _ = throwError $ "Can't apply non-function " ++ show values
         walk (Value (x : xs) expr env : vs) a = do
           (matched, a', env') <- match x a env
-	  if matched
+          if matched
             then do values' <- walk vs a'
                     return $ Value xs expr env' : values'
             else walk vs a'
@@ -103,5 +106,5 @@ match (Var x) value env = return (True, value, Map.insert x [value] env)
 match (Lit (LInt n)) value env = do
   num <- force [value] >>= valuesInt
   if num == n then return (True, Value [] (Apat (Lit (LInt n))) emptyEnv, env)
-              else return (False, Value [] (Apat (Lit (LInt n))) emptyEnv, env)
+              else return (False, Value [] (Apat (Lit (LInt num))) emptyEnv, env)
 
