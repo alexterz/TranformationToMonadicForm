@@ -35,6 +35,7 @@ import Control.Monad.Except
     in    { TokenIn }
     NUM   { TokenNum $$ }
     VAR   { TokenSym $$ }
+--    LIST  { TokenLIST $$} 
     '\\'  { TokenLambda }
     '->'  { TokenArrow }
     '='   { TokenEq }
@@ -43,9 +44,13 @@ import Control.Monad.Except
     '*'   { TokenMul }
     '('   { TokenLParen }
     ')'   { TokenRParen }
-    ';'   { TokenSemicolon}
-    '{'   { TokenLBracket}
-    '}'   { TokenRBracket}
+    ';'   { TokenSemicolon }
+    '{'   { TokenLBracket }
+    '}'   { TokenRBracket }
+    '['   { TokenLListOp }
+    ']'   { TokenRListOp }
+    ','   { TokenComma }
+    ':'   { TokenCons }
     '_'   { TokenUnderScore }
 
 -- Osperators
@@ -68,27 +73,60 @@ Form : Form '+' Form               { Op Add $1 $3 }
 Fact : Fact Atom                   { App $1 $2 }
      | Atom                        { $1 }
 
+
 Atom :'(' Expr ')'                 {  $2 }
-     | NUM                         { Apat ( Lit (LInt $1)) }
+     |'('Expr ':' Expr')'          { Cons $2 [$4]}   
+     | List                        { List $1} 
+     | NUM                         { Apat (Lit (LInt $1)) }
      | VAR                         { Apat (Var $1) }
      | true                        { Apat (Lit (LBool True)) }
      | false                       { Apat (Lit (LBool False)) }
 
+
+-- List for expressions
+List : '[' ListExpr ']'             { $2 }
+     | '[' {-empty-} ']'            { [] }
+--     | '(' Expr ':' Expr ')'        { $2 : [$4] } 
+--     | '(' Expr ':' Tail ')'        { $2 : $4 }
+  
+
+--Tail : List                         { $1 }
+--     | Expr                         { $1 }
+--     | VAR                          { [Apat (Var $1)] }
+    
+
+
+ListExpr : Expr ',' ListExpr      { $1 : $3 }
+         | Expr                   { $1:[] }
+
+
 --Declarations are of the form Dclr;...;Dclr
 Dclrs :  Dclr ';' Dclrs            { $1 : $3 } -- that's way we can declare something first that we will use later, but not the opposite
       |  Dclr                      { [$1] }    -- , so order matters... :(
---      |  Dclrs ';' Dclr            { $3 : $1 }
 
---VAR '=' Expr                { Assign $1 [] $3 } --den xreiazetai
-Dclr : VAR Apats '=' Expr          { Assign $1 $2 $4} --{ Assign $1 $2 (Lam $2 $4)} -- { Assign $1 ((Var $1):$2) (Lam ((Var $1):$2) $4)} --
+
+Dclr : VAR Apats '=' Expr          { Assign $1 $2 $4} 
 
 
 Apats: Apat Apats                   { $1 : $2 }
-     | {-empty-}                    {[]} 
+     | {-empty-}                    { [] } 
+
+ListArgs : '[' ListApats ']'        { $2 }
+         | '[' {-empty-} ']'        { [] } 
+         | '(' Apat ':' TailArgs ')'{ $2 : $4 }
 
 
-Apat : VAR                          { Var $1}
+ListApats : Apat ',' ListApats      { $1 : $3 }
+          | Apat                    { [$1] }
+
+TailArgs : ListArgs                 { $1 }
+         | VAR                      { [ListArgs [Var $1]] } --{[Var $1]}
+
+
+Apat : VAR                          { Var $1 }
      | NUM                          { Lit (LInt $1) }
+     | ListArgs                     { ListArgs $1}
+
 --     | '_'                          { } -- kapws prepei na to ftiaxw gia underscore
  
 

@@ -42,10 +42,14 @@ tokens :-
   \(                            { \s -> TokenLParen }
   \)                            { \s -> TokenRParen }
   $alpha [$alpha $digit \_ \']* { \s -> TokenSym s }
-  \;                            { \s -> TokenSemicolon}
-  \{                            { \s -> TokenLBracket}
-  \}                            { \s -> TokenRBracket}
-  \_                            { \s -> TokenUnderScore}
+  \;                            { \s -> TokenSemicolon }
+  \{                            { \s -> TokenLBracket }
+  \}                            { \s -> TokenRBracket }
+  \[                            { \s -> TokenLListOp }
+  \]                            { \s -> TokenRListOp }
+  \,                            { \s -> TokenComma }
+  \:                            { \s -> TokenCons }
+  \_                            { \s -> TokenUnderScore }
 
 {
 
@@ -67,6 +71,10 @@ data Token
   | TokenSemicolon
   | TokenLBracket
   | TokenRBracket
+  | TokenLListOp
+  | TokenRListOp
+  | TokenComma
+  | TokenCons  
   | TokenEOF
   | TokenUnderScore 
   deriving (Eq,Show)

@@ -10,6 +10,8 @@ data Expr
   | Let [Dclr] Expr --uses Parsing sequences
   | Apat Apats
   | Op Binop Expr Expr
+  | Cons Expr [Expr] -- for List Expr --[Expr]
+  | List [Expr]
   deriving (Eq,Show)
    
 
@@ -22,6 +24,7 @@ data Dclr
 data Apats  
     = Var Name
     | Lit Lit 
+    | ListArgs [Apats]
     deriving (Eq,Show)
 
 data Lit
