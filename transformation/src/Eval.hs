@@ -65,13 +65,14 @@ eval env (Apat (Var x)) =
   case Map.lookup x env of
     Just values -> force values
     Nothing -> throwError ("Can't find Variable "++ show x)
-eval env (Lam xs body) = return [Value xs body env]
-eval env (Cons expr [List listExpr]) = do 
-  x <- force [Value [] expr env]
-  case x of 
-    [Value _ e _] -> return [Value [] (List (e:(forceList listExpr env))) env]   
+eval env (Lam xs body) = return [Value xs body env]     
 eval env (Cons expr listExpr) =
-  eval env (Cons expr (forceList listExpr env))
+  case (forceList listExpr env) of
+  [List l] -> do 
+                x <- force [Value [] expr env]
+                case x of 
+                      [Value _ e _] -> return [Value [] (List (e:l)) env]
+  otherwise -> throwError $ "Waiting for a list, but " ++ show listExpr ++ " it's not" 
 eval env (App a b) = do
   values <- eval env a
   apply values $ Value [] b env

@@ -101,8 +101,8 @@ ListExpr : Expr ',' ListExpr      { $1 : $3 }
 
 
 --Declarations are of the form Dclr;...;Dclr
-Dclrs :  Dclr ';' Dclrs            { $1 : $3 } -- that's way we can declare something first that we will use later, but not the opposite
-      |  Dclr                      { [$1] }    -- , so order matters... :(
+Dclrs :  Dclr ';' Dclrs            { $1 : $3 } 
+      |  Dclr                      { [$1] }    
 
 
 Dclr : VAR Apats '=' Expr          { Assign $1 $2 $4} 
