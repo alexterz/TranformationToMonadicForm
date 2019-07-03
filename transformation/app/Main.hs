@@ -1,6 +1,7 @@
-import Syntax (Expr,Dclr)
+import Syntax (Expr,AllDclr)
 import Eval (runMain)
 import Parser (parseExpr,parseDclr,parseTokens)
+import Print (runPrint)
 
 import Control.Monad.Trans
 import System.Console.Haskeline
@@ -17,8 +18,12 @@ process input = do
     Left err -> do
       putStrLn "Parse Error:"
       print err
-    Right ast -> execMain ast --putStrLn "OK!"-- 
+    Right ast -> execPrint ast -- putStrLn "OK!"-- 
 
+execPrint:: [AllDclr]-> IO ()
+execPrint ast = do 
+  putStrLn $ runPrint ast
+{--
 execMain :: [Dclr] -> IO ()
 execMain ast = do
   let result = runMain ast
@@ -29,7 +34,7 @@ execMain ast = do
     Right (l:ls) -> print l
     otherwise -> do
                   putStrLn "Runtime Error: Non-exhaustive patterns"
-
+--}
 main :: IO ()
 main = runInputT defaultSettings loop
   where

@@ -6,6 +6,8 @@ import Syntax
 
 import Control.Monad.Except
 import Control.Monad.Extra
+import Control.Eff
+import Control.Monad
 import Data.Function
 import qualified Data.Map as Map
 
@@ -72,7 +74,7 @@ eval env (Cons expr listExpr) =
                 x <- force [Value [] expr env]
                 case x of 
                       [Value _ e _] -> return [Value [] (List (e:l)) env]
-  otherwise -> throwError $ "Waiting for a list, but " ++ show listExpr ++ " it's not" 
+  otherwise -> throwError $ "Waiting for a list, but expr: " ++ show listExpr ++ " it's not" 
 eval env (App a b) = do
   values <- eval env a
   apply values $ Value [] b env
@@ -80,8 +82,28 @@ eval env (Op op a b) = do
   x <- evalInt env a
   y <- evalInt env b
   return [Value [] (Apat (Lit (binop op x y))) env]
-eval env (Let ds expr) = eval (fixEnv ds env) expr 
+eval env (Let ds expr) = eval (fixEnv ds env) expr
+eval env (Monadic expr) = 
+  case (runExcept $ force [Value [] expr env]) of
+    Right [Value _ e _] -> return [Value [] (Monadic e) env]
+eval env (Bind expr func) = 
+  case (runExcept $ force [Value [] expr env]) of
+    Right [Value exprArgs (Monadic x) env1] -> 
+        case (runExcept $ force [Value [] func env]) of
+           Right [Value [arg] e _] -> do --thelw ena perissotero arg apth exprArgs gia na mporw na exw san orisma kai sunarthseis
+               (matched, a' , env') <- match arg (Value [] x env1) env
+               if matched  
+               then throwError "ok matched"-- return (bind x e) --
+               else throwError $ "Function's argument can't match with expr " ++ show x
+           Right value -> throwError $ "Can't apply >>= operator to the function " ++ show (value)-- function has more than one arguments
+    Right [Value _ e _] -> throwError $ show e ++ ": is not monadic, so >>= operator can't be applied"
+{--
+bind:: Expr -> Expr -> [Value]
+bind expr func =   
 
+effbind:: Eff [Value] -> [Value]
+effbind = 
+--}
 force :: [Value] -> Eval [Value]
 force (Value [] expr env : _) =  eval env expr
 force values = return values

@@ -28,6 +28,10 @@ tokens :-
   "#".*                         ;
 
   -- Syntax
+  \\n                           { \s -> TokenNewLine }
+  \::                           { \s -> TokenHasType }
+  "=>"                          { \s -> TokenContext }
+  return                        { \s -> TokenReturn } 
   let                           { \s -> TokenLet }
   True                          { \s -> TokenTrue }
   False                         { \s -> TokenFalse }
@@ -50,11 +54,17 @@ tokens :-
   \,                            { \s -> TokenComma }
   \:                            { \s -> TokenCons }
   \_                            { \s -> TokenUnderScore }
+  \>>=                          { \s -> TokenBind }
+   
 
 {
 
 data Token
-  = TokenLet
+  = TokenNewLine
+  | TokenHasType
+  | TokenContext 
+  | TokenLet
+  | TokenReturn
   | TokenTrue
   | TokenFalse
   | TokenIn
@@ -76,7 +86,9 @@ data Token
   | TokenComma
   | TokenCons  
   | TokenEOF
-  | TokenUnderScore 
+  | TokenUnderScore
+  | TokenBind 
+
   deriving (Eq,Show)
 
 scanTokens :: String -> Except String [Token]

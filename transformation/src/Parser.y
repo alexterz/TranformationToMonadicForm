@@ -18,7 +18,7 @@ import Control.Monad.Except
 
 -- Entry point
 %name expr
-%name dclr Dclrs
+%name dclr AllDclrs
 
 -- Lexer structure 
 %tokentype { Token }
@@ -29,38 +29,50 @@ import Control.Monad.Except
 
 -- Token Names
 %token
-    let   { TokenLet }
-    true  { TokenTrue }
-    false { TokenFalse }
-    in    { TokenIn }
-    NUM   { TokenNum $$ }
-    VAR   { TokenSym $$ }
---    LIST  { TokenLIST $$} 
-    '\\'  { TokenLambda }
-    '->'  { TokenArrow }
-    '='   { TokenEq }
-    '+'   { TokenAdd }
-    '-'   { TokenSub }
-    '*'   { TokenMul }
-    '('   { TokenLParen }
-    ')'   { TokenRParen }
-    ';'   { TokenSemicolon }
-    '{'   { TokenLBracket }
-    '}'   { TokenRBracket }
-    '['   { TokenLListOp }
-    ']'   { TokenRListOp }
-    ','   { TokenComma }
-    ':'   { TokenCons }
-    '_'   { TokenUnderScore }
+    '\n'   { TokenNewLine}
+    '::'   { TokenHasType }
+    '=>'   { TokenContext } 
+    return { TokenReturn }
+    let    { TokenLet }
+    true   { TokenTrue }
+    false  { TokenFalse }
+    in     { TokenIn }
+    NUM    { TokenNum $$ }
+    VAR    { TokenSym $$ }
+    '\\'   { TokenLambda }
+    '->'   { TokenArrow }
+    '='    { TokenEq }
+    '+'    { TokenAdd }
+    '-'    { TokenSub }
+    '*'    { TokenMul }
+    '('    { TokenLParen }
+    ')'    { TokenRParen }
+    ';'    { TokenSemicolon }
+    '{'    { TokenLBracket }
+    '}'    { TokenRBracket }
+    '['    { TokenLListOp }
+    ']'    { TokenRListOp }
+    ','    { TokenComma }
+    ':'    { TokenCons }
+    '_'    { TokenUnderScore }
+    '>>='  { TokenBind }
+    
 
 -- Osperators
+%right in
+%left '>>='
+%right ':'
 %left '+' '-'
 %left '*'
+-- %nonassoc '='
 %%
 
 --let VAR '=' Expr in Expr    { App (Lam $2 $6) $4 }
 Expr : let Dclrs in Expr            { Let $2 $4} 
      | '\\' Apats '->' Expr         { Lam $2 $4 }
+     | Expr ':' Expr                { Cons $1 [$3]} 
+     | return Expr                  { Monadic $2 }
+     | Expr '>>=' Expr              { Bind $1 $3 } 
      | Form                         { $1 }
 
 
@@ -74,8 +86,7 @@ Fact : Fact Atom                   { App $1 $2 }
      | Atom                        { $1 }
 
 
-Atom :'(' Expr ')'                 {  $2 }
-     |'('Expr ':' Expr')'          { Cons $2 [$4]}   
+Atom :'(' Expr ')'                 {  $2 } 
      | List                        { List $1} 
      | NUM                         { Apat (Lit (LInt $1)) }
      | VAR                         { Apat (Var $1) }
@@ -86,15 +97,8 @@ Atom :'(' Expr ')'                 {  $2 }
 -- List for expressions
 List : '[' ListExpr ']'             { $2 }
      | '[' {-empty-} ']'            { [] }
---     | '(' Expr ':' Expr ')'        { $2 : [$4] } 
---     | '(' Expr ':' Tail ')'        { $2 : $4 }
-  
 
---Tail : List                         { $1 }
---     | Expr                         { $1 }
---     | VAR                          { [Apat (Var $1)] }
     
-
 
 ListExpr : Expr ',' ListExpr      { $1 : $3 }
          | Expr                   { $1:[] }
@@ -102,18 +106,40 @@ ListExpr : Expr ',' ListExpr      { $1 : $3 }
 
 --Declarations are of the form Dclr;...;Dclr
 Dclrs :  Dclr ';' Dclrs            { $1 : $3 } 
-      |  Dclr                      { [$1] }    
+      |  Dclr                      { [$1] }
 
+AllDclrs :  AllDclr ';' AllDclrs   { $1 : $3 } 
+         |  AllDclr                { [$1] }
+                
+
+AllDclr: Dclr                      { Dclr $1 }
+       | TypeSignature '\n' Dclr   { WithSign $1 $3 } 
 
 Dclr : VAR Apats '=' Expr          { Assign $1 $2 $4} 
 
+
+TypeSignature: VAR '::' Type                     {Signature $1 $3} 
+             | VAR '::' Contexts '=>' Type {ContSignature $1 $3 $5}
+
+Contexts: '('Context')'             { $2 }
+        | VAR VAR                    { [Constraint $1 $2]}
+
+Context: VAR VAR ',' Context        { (Constraint $1 $2):$4} 
+       | VAR VAR                    { [Constraint $1 $2]}
+             
+Type: '('Type')'                    { $2 } 
+    | VAR                           { Literal $1 }
+    | Type '->' Type                { TFunc $1 $3}
+    | VAR Type                      { Container $1 $2 } 
+
+      
 
 Apats: Apat Apats                   { $1 : $2 }
      | {-empty-}                    { [] } 
 
 ListArgs : '[' ListApats ']'        { $2 }
          | '[' {-empty-} ']'        { [] } 
-         | '(' Apat ':' TailArgs ')'{ $2 : $4 }
+         | Apat ':' TailArgs        { $1 : $3 }
 
 
 ListApats : Apat ',' ListApats      { $1 : $3 }
@@ -126,6 +152,8 @@ TailArgs : ListArgs                 { $1 }
 Apat : VAR                          { Var $1 }
      | NUM                          { Lit (LInt $1) }
      | ListArgs                     { ListArgs $1}
+     | '('Apat')'                   { $2 }
+
 
 --     | '_'                          { } -- kapws prepei na to ftiaxw gia underscore
  
@@ -136,7 +164,7 @@ parseError :: [Token] -> Except String a
 parseError (l:ls) = throwError (show l)
 parseError [] = throwError "Unexpected end of Input"
 
-parseDclr ::String -> Either String Dclrs
+parseDclr ::String -> Either String AllDclrs
 parseDclr input = runExcept $ do
   tokenStream <- scanTokens input
   dclr tokenStream 
@@ -150,3 +178,4 @@ parseTokens :: String -> Either String [Token]
 parseTokens = runExcept . scanTokens
     
 }
+

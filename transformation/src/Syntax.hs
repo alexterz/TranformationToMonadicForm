@@ -1,8 +1,37 @@
 module Syntax where
 
+import Control.Monad
+
 type Name = String
 
 type Dclrs = [Dclr]
+
+type AllDclrs =[AllDclr]
+
+data AllDclr
+  = Dclr Dclr   
+  | WithSign TypeSignature Dclr
+  deriving (Eq,Show)
+
+data Dclr 
+  = Assign Name [Apats] Expr 
+--  | FuncDclr Name [Name] Expr--Rhs
+  deriving (Eq,Show)
+
+data TypeSignature
+  = Signature Name Type
+  | ContSignature Name [Context]  Type
+  deriving (Eq,Show)
+
+data Type 
+  = Literal Name
+  | Container Name Type
+  | TFunc Type Type  
+  deriving (Eq,Show)
+
+data Context
+  = Constraint Name Name
+   deriving (Eq,Show) 
 
 data Expr
   = Lam [Apats] Expr
@@ -12,15 +41,10 @@ data Expr
   | Op Binop Expr Expr
   | Cons Expr [Expr] 
   | List [Expr]
+  | Bind Expr Expr 
+  | Monadic Expr
   deriving (Eq,Show)
    
-
-data Dclr 
-  = Assign Name [Apats] Expr
---  | FuncDclr Name [Name] Expr--Rhs
-  deriving (Eq,Show)
-
-
 data Apats  
     = Var Name
     | Lit Lit 
@@ -34,3 +58,5 @@ data Lit
 
 data Binop = Add | Sub | Mul | Eql
   deriving (Eq, Ord, Show)
+
+
