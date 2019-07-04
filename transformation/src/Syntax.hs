@@ -25,8 +25,9 @@ data TypeSignature
 
 data Type 
   = Literal Name
+  | TFunc Type Type
   | Container Name Type
-  | TFunc Type Type  
+    
   deriving (Eq,Show)
 
 data Context

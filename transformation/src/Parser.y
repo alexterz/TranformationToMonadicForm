@@ -59,12 +59,12 @@ import Control.Monad.Except
     
 
 -- Osperators
+%right '->'
 %right in
 %left '>>='
 %right ':'
 %left '+' '-'
 %left '*'
--- %nonassoc '='
 %%
 
 --let VAR '=' Expr in Expr    { App (Lam $2 $6) $4 }
@@ -118,44 +118,50 @@ AllDclr: Dclr                      { Dclr $1 }
 Dclr : VAR Apats '=' Expr          { Assign $1 $2 $4} 
 
 
-TypeSignature: VAR '::' Type                     {Signature $1 $3} 
+TypeSignature: VAR '::' Type               {Signature $1 $3} 
              | VAR '::' Contexts '=>' Type {ContSignature $1 $3 $5}
 
 Contexts: '('Context')'             { $2 }
-        | VAR VAR                    { [Constraint $1 $2]}
+        | VAR VAR                   { [Constraint $1 $2]}
 
 Context: VAR VAR ',' Context        { (Constraint $1 $2):$4} 
        | VAR VAR                    { [Constraint $1 $2]}
              
-Type: '('Type')'                    { $2 } 
-    | VAR                           { Literal $1 }
-    | Type '->' Type                { TFunc $1 $3}
-    | VAR Type                      { Container $1 $2 } 
+Type: Container '->' Type           { TFunc $1 $3}  
+    | Container                     { $1 } 
 
-      
+Container: VAR SimpleType           { Container $1 $2 } 
+         | SimpleType               { $1 }
+
+SimpleType: '('Type')'              { $2 } 
+          | VAR                     { Literal $1 } 
+
+
 
 Apats: Apat Apats                   { $1 : $2 }
      | {-empty-}                    { [] } 
 
+Apat : ListArgs                      { ListArgs $1 }
+     | SimpleApat                    { $1 }    
+--     | '_'                          { } -- kapws prepei na to ftiaxw gia underscore
+
+SimpleApat :'('Apat')'                   { $2 }
+           | VAR                         { Var $1 }
+           | NUM                         { Lit (LInt $1) }
+
 ListArgs : '[' ListApats ']'        { $2 }
          | '[' {-empty-} ']'        { [] } 
-         | Apat ':' TailArgs        { $1 : $3 }
+         | SimpleApat ':' TailArgs  { $1 : $3 } -- gia na exw lista apo listes prepei na exw parentheseis :/ ([x]):xs
 
 
 ListApats : Apat ',' ListApats      { $1 : $3 }
           | Apat                    { [$1] }
 
 TailArgs : ListArgs                 { $1 }
+         |'(' ListArgs ')'          { $2 } --edw ginetai ena shift/reduce conflict alla to thelw gia (x:(y:ys)) pws alliws??
          | VAR                      { [ListArgs [Var $1]] } --{[Var $1]}
 
 
-Apat : VAR                          { Var $1 }
-     | NUM                          { Lit (LInt $1) }
-     | ListArgs                     { ListArgs $1}
-     | '('Apat')'                   { $2 }
-
-
---     | '_'                          { } -- kapws prepei na to ftiaxw gia underscore
  
 
 {
