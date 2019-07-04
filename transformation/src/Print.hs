@@ -18,7 +18,7 @@ runPrint (d:ds) = (printAllDclr d ++ runPrint ds)
 
 printAllDclr :: AllDclr -> String
 printAllDclr (Dclr d) = printDclr d--undefined 
-printAllDclr (WithSign typesign d) = (printTypeSign typesign) ++ printDclr d ++"\nok"
+printAllDclr (WithSign typesign d) = (printTypeSign typesign) ++"\n"++ printDclr d ++"\nok"
 
 printTypeSign :: TypeSignature -> String
 printTypeSign (Signature name t) = name ++ " :: " ++ printType t
@@ -26,8 +26,9 @@ printTypeSign (ContSignature name cont  t) =name ++ " :: " ++ " (" ++ printConte
 
 printType :: Type -> String
 printType (Literal name) = name
-printType (TFunc t1 t2) = "(" ++ printType t1  ++ ") -> " ++ "(" ++ printType t2 ++")" 
-printType (Container name t) = " (" ++ name ++ " (" ++ printType t ++")" ++ " )"
+printType (TFunc t1 t2) = "(" ++ printType t1  ++ ") -> "  ++ printType t2 
+printType (Container name t) = name ++ " (" ++ printType t ++")" 
+printType (TList t) = "["++ printType t ++"]"
  
 
 printContext :: [Context] -> String
@@ -36,7 +37,7 @@ printContext [Constraint c n] = c ++ " " ++ n
 printContext ((Constraint c n):ls) = c ++ " " ++ n ++", " ++ printContext ls 
 
 printDclr:: Dclr -> String
-printDclr (Assign name apats expr) = name ++" " ++ printApats apats ++" = " ++ "ok \n"--printExpr -- VAR Apats '=' Expr
+printDclr (Assign name apats expr) = name ++" " ++ printApats apats ++" = " ++ "ok \n\n"--printExpr -- VAR Apats '=' Expr
 
 printApats:: [Apats]-> String
 printApats [] = ""

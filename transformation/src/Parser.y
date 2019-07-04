@@ -117,7 +117,7 @@ AllDclr: Dclr                      { Dclr $1 }
 
 Dclr : VAR Apats '=' Expr          { Assign $1 $2 $4} 
 
-
+--------------------------------------------------------------------------------
 TypeSignature: VAR '::' Type               {Signature $1 $3} 
              | VAR '::' Contexts '=>' Type {ContSignature $1 $3 $5}
 
@@ -134,10 +134,11 @@ Container: VAR SimpleType           { Container $1 $2 }
          | SimpleType               { $1 }
 
 SimpleType: '('Type')'              { $2 } 
+          | '['Type']'              { TList $2}
           | VAR                     { Literal $1 } 
 
 
-
+---------------------------------------------------------------------------
 Apats: Apat Apats                   { $1 : $2 }
      | {-empty-}                    { [] } 
 
