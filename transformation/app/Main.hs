@@ -6,35 +6,23 @@ import Print (runPrint)
 import Control.Monad.Trans
 import System.Console.Haskeline
 
-process :: String -> IO ()
+process :: String -> IO String
 process input = do
   let tokens = parseTokens input
-  putStrLn ("Tokens: " ++ show tokens)
-  let ast = parseExpr input
-  putStrLn ("Syntax Expr: " ++ show ast)
+--  return $ ("Tokens: " ++ show tokens)
+ -- let ast = parseExpr input
+--  return $("Syntax Expr: " ++ show ast)
   let mainAst = parseDclr input
-  putStrLn ("Syntax Dclr: " ++ show mainAst)
+--  return $("Syntax Dclr: " ++ show mainAst)
   case mainAst of
     Left err -> do
-      putStrLn "Parse Error:"
-      print err
-    Right ast -> execPrint ast -- putStrLn "OK!"-- 
+      return $ "Parse Error:"
+      return $ err
+    Right ast ->  (execPrint ast) -- putStrLn "OK!"-- 
 
-execPrint:: [AllDclr]-> IO ()
-execPrint ast = do 
-  putStrLn $ runPrint ast
-{--
-execMain :: [Dclr] -> IO ()
-execMain ast = do
-  let result = runMain ast
-  case result of
-    Left err -> do
-      putStrLn "Runtime Error:"
-      putStrLn err
-    Right (l:ls) -> print l
-    otherwise -> do
-                  putStrLn "Runtime Error: Non-exhaustive patterns"
---}
+execPrint:: [AllDclr]-> IO String
+execPrint ast = return (runPrint ast) -- $ ("Syntax Dclr: " ++ show ast ++ "\n") ++
+
 main :: IO ()
 main = runInputT defaultSettings loop
   where
@@ -42,4 +30,14 @@ main = runInputT defaultSettings loop
     minput <- getInputLine "Happy> "
     case minput of
       Nothing -> outputStrLn "Goodbye."
+      Just ((':'):('l'):(' '):inputFile) ->  
+               ((liftIO  ((readInput inputFile)>>= process)) >>= outputStrLn)>> loop
       Just input -> (liftIO $ process input) >> loop
+
+
+
+readInput:: String ->IO String
+readInput fileName = do 
+                       contents <- readFile fileName
+                       return contents 
+                         

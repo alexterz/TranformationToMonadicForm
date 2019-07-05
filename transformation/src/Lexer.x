@@ -92,7 +92,7 @@ data Token
   deriving (Eq,Show)
 
 scanTokens :: String -> Except String [Token]
-scanTokens str = go ('\n',[],str) where
+scanTokens str = go (' ',[],str) where
   go inp@(_,_bs,str) =
     case alexScan inp 0 of
      AlexEOF -> return []

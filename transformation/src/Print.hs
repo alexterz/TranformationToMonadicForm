@@ -107,31 +107,7 @@ printExpr (App e1 e2) =
 printExpr (Bind e1 e2) =
   "("++ printExpr e1 ++ ">>=" ++ printExpr e2 ++")"
 --printExpr (Monadic expr) =   
-printExpr e = "Nooooooo" ++ show e
+printExpr e = "Monadic" ++ show e
 
 
-
-
-{--
-Expr
-  = Lam [Apats] Expr ok
-  | App Expr Expr ok
-  | Let [Dclr] Expr --uses Parsing sequences ok
-  | Apat Apats ok
-  | Op Binop Expr Expr ok
-  | Cons Expr [Expr] ok
-  | List [Expr] ok
-  | Bind Expr Expr 
-  | Monadic Expr
-
---}
-
-
-a =
-   let
-    x =
-       1
-
-  in
-    x
 
