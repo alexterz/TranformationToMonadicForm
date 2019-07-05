@@ -32,7 +32,7 @@ import Control.Monad.Except
     '\n'   { TokenNewLine}
     '::'   { TokenHasType }
     '=>'   { TokenContext } 
-    return { TokenReturn }
+--    return { TokenReturn }
     let    { TokenLet }
     true   { TokenTrue }
     false  { TokenFalse }
@@ -71,7 +71,7 @@ import Control.Monad.Except
 Expr : let Dclrs in Expr            { Let $2 $4} 
      | '\\' Apats '->' Expr         { Lam $2 $4 }
      | Expr ':' Expr                { Cons $1 [$3]} 
-     | return Expr                  { Monadic $2 }
+--     | return Expr                  { Monadic $2 }
      | Expr '>>=' Expr              { Bind $1 $3 } 
      | Form                         { $1 }
 
@@ -130,8 +130,11 @@ Context: VAR VAR ',' Context        { (Constraint $1 $2):$4}
 Type: Container '->' Type           { TFunc $1 $3}  
     | Container                     { $1 } 
 
-Container: VAR SimpleType           { Container $1 $2 } 
+Container: VAR TypeList             { Container $1 $2 } 
          | SimpleType               { $1 }
+
+TypeList: SimpleType TypeList       { $1 : $2 } 
+        | SimpleType                { [$1] }
 
 SimpleType: '('Type')'              { $2 } 
           | '['Type']'              { TList $2}

@@ -20,7 +20,8 @@ map f (x:xs) = f x : map f xs
 --}
 map'':: (a-> Eff r b) -> [a] -> Eff r [b]
 map'' f [] = return []
-map'' f (h:t) = map'' f t >>= \t' -> (f h >>= \h' -> return (h':t') )
+--map'' f (h : t) = (((map'' f) t)>>=( \ t'  -> ((f h)>>=( \ h'  -> (return (h':t'))))));
+map'' f (h:t) = (f h) >>= (\h' -> (map'' f t >>= \t' -> return (h':t') ))
 
 
 map':: (a-> Eff r b) -> [a] -> Eff r [b]
@@ -32,19 +33,19 @@ map' f (h:t) = do
 
 --mapNew:: (a-> Eff r b) -> Eff r ([a] -> Eff r [b])
 mapEff:: Monad m => (a-> Eff r b) -> m ([a] -> Eff r [b])
-mapEff = mConvert1 map'
+mapEff = mConvert1 map''
 
 
 
 --examples with map'
 
-t1 = run $ runReader (10::Int) (map' f [1..5])
+t1 = run $ runReader (10::Int) (map'' f [1..5])
      where f x = ask `add` return x
 --[11,12,13,14,15]
 
 -- totalAdd imported from ForTesting, i sthe function that giving a x, returns the (x + Env + (s+1)), and increases the state 
 
-t2 = run $ runState (5::Int) $ runReader (10::Int) $ map'  totalAdd [1..5]
+t2 = run $ runState (5::Int) $ runReader (10::Int) $ map''  totalAdd [1..5]
 --([17,19,21,23,25],10)
 
 --examples with mapNew

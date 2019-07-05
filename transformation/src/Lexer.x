@@ -31,7 +31,7 @@ tokens :-
   \\n                           { \s -> TokenNewLine }
   \::                           { \s -> TokenHasType }
   "=>"                          { \s -> TokenContext }
-  return                        { \s -> TokenReturn } 
+--  return                        { \s -> TokenReturn } 
   let                           { \s -> TokenLet }
   True                          { \s -> TokenTrue }
   False                         { \s -> TokenFalse }
@@ -64,7 +64,7 @@ data Token
   | TokenHasType
   | TokenContext 
   | TokenLet
-  | TokenReturn
+--  | TokenReturn
   | TokenTrue
   | TokenFalse
   | TokenIn

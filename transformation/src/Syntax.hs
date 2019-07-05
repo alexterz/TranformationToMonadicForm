@@ -26,7 +26,7 @@ data TypeSignature
 data Type 
   = Literal Name
   | TFunc Type Type
-  | Container Name Type
+  | Container Name [Type]
   | TList Type
     
   deriving (Eq,Show)
