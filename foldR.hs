@@ -20,10 +20,14 @@ foldr f z []     =  z
 foldr f z (x:xs) =  f x (foldr f z xs)
 --}
 
---foldr'' ::Monad m => (a-> m (b -> m b)) -> b -> [a] -> m b
+foldr'' ::(a-> Eff r (b -> Eff r b)) -> b -> [a] -> Eff r b
+foldr'' f z [] = (return z);
+foldr'' f z (x : xs) = ((((foldr'' f) z) xs)>>=( \ x0  -> (((return x)>>=( \ x1  -> ((return f)>>=( \ g1  -> (g1 x1)))))>>=( \ g0  -> (g0 x0)))));
+{--
+foldr'' ::Monad m => (a-> m (b -> m b)) -> b -> [a] -> m b
 foldr'' f z [] = return z
-foldr'' f z (x:xs) = foldr' f z xs >>= \y -> f x >>= \g -> g y >>= \h -> return h 
-
+foldr'' f z (x:xs) = foldr'' f z xs >>= \y -> f x >>= \g -> g y--g y>>= \h -> return h 
+--}
 --foldr' ::Monad m => (a-> m (b -> m b)) -> b -> [a] -> m b
 foldr' ::(a-> Eff r (b -> Eff r b)) -> b -> [a] -> Eff r b
 foldr' f z [] = return z

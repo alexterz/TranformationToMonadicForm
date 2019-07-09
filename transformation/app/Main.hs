@@ -1,5 +1,5 @@
 import Syntax (Expr,AllDclr)
-import Eval (runMain)
+--import Eval (runMain)
 import Parser (parseExpr,parseDclr,parseTokens)
 import Print (runPrint)
 import Transformation (runTransformation)
@@ -20,16 +20,13 @@ process input = do
         case mainAst of
           Left err -> (err, err)
        --     return $ "Parse Error:"
-          Right ast ->  ((execPrint ast),(execTransformation ast))
-   
-    
-     -- putStrLn "OK!"-- 
-
+          Right ast ->  ((execPrint ast),(execTransformation ast)) --show ast ++"\n"++ 
+ 
 execPrint :: [AllDclr]-> String
 execPrint ast = (runPrint ast) -- $ ("Syntax Dclr: " ++ show ast ++ "\n") ++
 
 execTransformation :: [AllDclr]-> String
-execTransformation ast = (runPrint (runTransformation ast))
+execTransformation ast = runPrint (runTransformation ast) --show (runTransformation ast) ++"\n" ++
 
 main :: IO ()
 main = runInputT defaultSettings loop
@@ -49,7 +46,7 @@ writeOutput i1 str1 str2 = do
   writeFile ("Output"++ i1) str1
   writeFile ("TransfOutput"++ i1) str2
  
-readInput:: String ->IO String
+readInput:: FilePath ->IO String
 readInput fileName = do 
                        contents <- readFile fileName
                        return contents 

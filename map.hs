@@ -13,13 +13,16 @@ import MConvert
 import ForTesting
 
 
-{--
-map :: (a -> b) -> [a] -> [b]
-map _ [] = []
-map f (x:xs) = f x : map f xs
+
+add' = (+) 5 3
+
+mapM':: Num a => (a -> Eff r b) -> ([a]-> Eff r [b])
+mapM' f [] = return []
+mapM' f (x : xs) = ((f x)>>=( \ h  -> (((mapM' f) xs)>>=( \ t  -> (let in ((f 1)>>=( \ h0  -> (((return h)>>=( \ h1  -> ((return t)>>=( \ t1  -> (return (h1:t1))))))>>=( \ t0  -> (return (h0:t0)))))))))));
 --}
 map'':: (a-> Eff r b) -> [a] -> Eff r [b]
 map'' f [] = return []
+map'' f (x : y : xs) = ((f x)>>=( \ h0  -> (((f y)>>=( \ h1  -> (((map'' f) xs)>>=( \ t1  -> (return (h1:t1))))))>>=( \ t0  -> (return (h0:t0))))));
 --map'' f (h : t) = (((map'' f) t)>>=( \ t'  -> ((f h)>>=( \ h'  -> (return (h':t'))))));
 map'' f (h:t) = (f h) >>= (\h' -> (map'' f t >>= \t' -> return (h':t') ))
 

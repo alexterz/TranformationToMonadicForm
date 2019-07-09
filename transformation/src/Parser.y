@@ -113,7 +113,7 @@ AllDclrs :  AllDclr ';' AllDclrs   { $1 : $3 }
                 
 
 AllDclr: Dclr                      { Dclr $1 }
-       | TypeSignature '\n' Dclr   { WithSign $1 $3 } 
+       | TypeSignature ';' Dclr   { WithSign $1 $3 } 
 
 Dclr : VAR Apats '=' Expr          { Assign $1 $2 $4} 
 

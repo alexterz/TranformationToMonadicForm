@@ -75,16 +75,6 @@ printListElem [l] = printApat l
 printListElem (l:ls) = printApat l ++ "," ++ printListElem ls
 
 -------------------------------------------------------------------------------------------------------------------
-printListExpr:: [Expr]->String
-printListExpr [] = ""
-printListExpr [l] = printExpr l
-printListExpr (l:ls) = printExpr l ++ "," ++ printListExpr ls
-
-printBiOp:: Binop -> String
-printBiOp (Add) = "+"
-printBiOp (Sub) = "-"
-printBiOp (Mul) = "*"
-printBiOp (Eql) = "=="
 
 printExpr:: Expr -> String
 printExpr (Let ds expr) = 
@@ -109,5 +99,15 @@ printExpr (Bind e1 e2) =
 --printExpr (Monadic expr) =   
 printExpr e = "Monadic" ++ show e
 
+printListExpr:: [Expr]->String
+printListExpr [] = ""
+printListExpr [l] = printExpr l
+printListExpr (l:ls) = printExpr l ++ "," ++ printListExpr ls
+
+printBiOp:: Binop -> String
+printBiOp (Add) = "+"
+printBiOp (Sub) = "-"
+printBiOp (Mul) = "*"
+printBiOp (Eql) = "=="
 
 
