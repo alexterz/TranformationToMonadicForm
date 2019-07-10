@@ -1,5 +1,6 @@
 module Transformation (
-  runTransformation 
+  runTransformation,
+  convert 
 ) where
 
 import Syntax
@@ -19,17 +20,20 @@ runTransformation (d:ds) = (transformAllDclr d): (runTransformation ds)
 
 transformAllDclr:: AllDclr->AllDclr
 transformAllDclr (Dclr d) = Dclr (transformDclr d)
-transformAllDclr (WithSign typesign d) = (WithSign (transformTypeSign typesign) (transformDclr d))
+transformAllDclr (WithSign typesign d) = (EndSign (transformTypeSign typesign) (transformDclr d))
 
-transformTypeSign :: TypeSignature -> TypeSignature
-transformTypeSign (Signature name t) = Signature name (transformType t)
-transformTypeSign (ContSignature name cont  t) =ContSignature name cont (transformType t)
+transformTypeSign :: TypeSignature -> (TypeSignature,Integer)
+transformTypeSign (Signature name t) = (Signature name (fst $transformType t 0),((snd $ transformType t 0)-1) )
+transformTypeSign (ContSignature name cont  t) =(ContSignature name cont (fst $ transformType t 0), ((snd $ transformType t 0)-1))
 
-transformType :: Type -> Type
-transformType (Literal name) = Literal name
-transformType (TFunc t1 t2) =TFunc (transformType t1)  (Container "Eff" [Literal "r" ,transformType t2])  
-transformType (Container name t) = Container name t 
-transformType (TList t) = TList t
+transformType :: Type -> Integer ->(Type,Integer)
+transformType (Literal name) i= ((Literal name),i)
+transformType (TFunc t1 t2) i=
+  ((TFunc t1'  (Container "Eff" [Literal "r" ,t2'])), k)
+    where (t1',j) = transformType t1 i
+          (t2',k) = transformType t2 (i+1)    
+transformType (Container name t) i= ((Container name t),i) 
+transformType (TList t) i= ((TList t) ,i)
 
 -------------------------------------------------------------------------------------------------------------
 returnExpr:: Expr -> Expr
@@ -42,7 +46,7 @@ toMonad (Cons expr exprs) _ = returnExpr (Cons expr exprs)
 toMonad (Let ds expr) i = transformLet ds expr [] i
 toMonad (App e1 e2) _ = App e1 e2 --it's a monad itself
 toMonad (Lam apats expr) _ = undefined
-toMonad (Op binop e1 e2) _ = Op binop e1 e2
+toMonad (Op binop e1 e2) _ = Op binop e1 e2 --App (App (Apat (Var ("("++show binop++")"))) e1) e2--
 
 
 transformDclr:: Dclr -> Dclr
@@ -64,7 +68,7 @@ transformExpr (App e1 e2) i =
   (Bind (transformExpr e1 (i+1)) (Lam [Var ("g"++ show i)]
   (App (Apat (Var ("g"++ show i))) (Apat (Var ("x"++show i))))))) -- ok  
 transformExpr (Lam apats expr) i = undefined
-transformExpr (Op binop e1 e2) i = returnExpr (Op binop e1 e2) 
+transformExpr (Op binop e1 e2) i = returnExpr (Op binop e1 e2) --transformExpr (App (App (Apat (Var ("("++show binop++")"))) e1) e2) i-- 
 
 transformExprs:: [Expr] -> Integer -> Expr
 transformExprs [Cons expr exprs] i= transformExpr (Cons expr exprs) i
@@ -77,3 +81,15 @@ transformLet ((Assign name [] e):ds) expr dclrs i=
 transformLet (d:ds) expr dclrs i= -- case d is for a function
   transformLet ds expr dclrs' i
     where dclrs' = (transformDclr d):dclrs  
+
+convert:: [AllDclr]->[AllDclr]
+convert  [] = []
+convert (d:ds) = (convertAllDclr d): (convert ds)
+
+convertAllDclr:: AllDclr->AllDclr
+convertAllDclr (EndSign (typeSign,times) dclr) =  (WithSign typeSign (convertDclr dclr times))
+convertAllDclr dclrs = dclrs  
+
+convertDclr:: Dclr -> Integer -> Dclr
+convertDclr (Assign name args expr) i= 
+  Assign (name++"Eff") [] (App (Apat (Var ("mConvert"++ show i))) (Apat(Var name)))

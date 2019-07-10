@@ -14,6 +14,10 @@ import MConvert
 
 --auxiliary functions
 
+addOne:: Monad m => Int -> m Int
+addOne x = return (x+1)
+
+
 add :: Monad m => m Int -> m Int -> m Int
 add = liftM2 (+)
 

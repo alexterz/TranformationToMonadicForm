@@ -19,6 +19,7 @@ runPrint (d:ds) = (printAllDclr d ++ runPrint ds)
 printAllDclr :: AllDclr -> String
 printAllDclr (Dclr d) = printDclr d ++"\n"--undefined 
 printAllDclr (WithSign typesign d) = (printTypeSign typesign) ++"\n"++ printDclr d ++"\n"
+printAllDclr (EndSign (typesign,times) d) = (printTypeSign typesign) ++"\n"++ printDclr d ++"\n" ++ show times ++"\n"
 
 printTypeSign :: TypeSignature -> String
 printTypeSign (Signature name t) = name ++ " :: " ++ printType t

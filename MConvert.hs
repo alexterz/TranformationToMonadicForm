@@ -3,6 +3,8 @@ module MConvert where
 --παίρνει μία συνάρτηση τύπου (t->a) και τη μετατρέπει σε μία συνάρτηση τύπου (t-> m a), 
 --αν στην mConvert κάνουμε partial application των arguments, δηλαδή καλέσουμε mConvert f, θα μας δωθεί η f σε monadic form
 
+mConvert0 :: Monad m => a -> m a
+mConvert0 = return
 
 -- Η mConvert1 διαφέρει απτην return (:: Monad m => a -> m a) στο ότι της δίνουμε μία συνάρτηση και μας την επιστρέφει σε Monadic form, δηλαδή την καλούμε με ένα μόνο όρισμα (partial application), την συνάρτηση που θέλουμε να μετατρέψουμε σε monadic form
 
@@ -22,6 +24,7 @@ mConvert3 :: (Monad m, Monad m1, Monad m2) =>(t -> t2 -> t1 -> a) -> t -> m (t2 
 mConvert3 f x =return $ mConvert2 $ f x
 
 {--
+mConvert:: Monad m => Integer -> (t->a) -> (t -> m a) 
 mConvert 1 f x = return (f x)
 mConvert i f x = return $ mConvert (i-1) $ f x 
 --}

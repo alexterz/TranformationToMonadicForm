@@ -11,6 +11,7 @@ type AllDclrs =[AllDclr]
 data AllDclr
   = Dclr Dclr   
   | WithSign TypeSignature Dclr
+  | EndSign (TypeSignature,Integer) Dclr
   deriving (Eq,Show)
 
 data Dclr 
