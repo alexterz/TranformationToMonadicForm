@@ -1,6 +1,5 @@
 module Transformation (
   runTransformation,
-  convert 
 ) where
 
 import Syntax
@@ -14,16 +13,22 @@ import qualified Data.Map as Map
 
 
 
-runTransformation:: [AllDclr]->[AllDclr]
+runTransformation :: [AllDclr]->[AllDclr]
 runTransformation [] = []
 runTransformation (d:ds) = (transformAllDclr d): (runTransformation ds)
 
-transformAllDclr:: AllDclr->AllDclr
-transformAllDclr (Dclr d) = Dclr (transformDclr d)
-transformAllDclr (WithSign typesign d) = (EndSign (transformTypeSign typesign) (transformDclr d))
+
+transformAllDclr :: AllDclr->AllDclr
+transformAllDclr (WithSign typesign d) = (WithSign signToMonad (transformDclrs d times))
+  where (signToMonad,times) = (transformTypeSign typesign)
 
 transformTypeSign :: TypeSignature -> (TypeSignature,Integer)
-transformTypeSign (Signature name t) = (Signature name (fst $transformType t 0),((snd $ transformType t 0)-1) )
+transformTypeSign (Signature name t) = 
+  (Signature name (fst $transformType t 0),times )
+    where times =
+            case (snd $ transformType t 0) of
+              0-> 0
+              x-> x-1
 transformTypeSign (ContSignature name cont  t) =(ContSignature name cont (fst $ transformType t 0), ((snd $ transformType t 0)-1))
 
 transformType :: Type -> Integer ->(Type,Integer)
@@ -48,10 +53,19 @@ toMonad (App e1 e2) _ = App e1 e2 --it's a monad itself
 toMonad (Lam apats expr) _ = undefined
 toMonad (Op binop e1 e2) _ = Op binop e1 e2 --App (App (Apat (Var ("("++show binop++")"))) e1) e2--
 
+transformDclrs:: Dclrs-> Integer -> Dclrs
+transformDclrs ((Assign name apats expr):ds) times = 
+  [(Assign name [] expr' )]
+  where
+    expr' = Let (transformlocalDclrs ((Assign name apats expr):ds)) (App (Apat (Var ("mConvert" ++ (show times)))) (Apat(Var name)))
+ 
+
+transformlocalDclrs [] = []
+transformlocalDclrs (d:ds) = (transformDclr d):(transformlocalDclrs ds)
 
 transformDclr:: Dclr -> Dclr
 transformDclr (Assign name apats expr) = 
-  Assign name apats expr'
+  Assign (name) apats expr'
     where expr' = (transformExpr expr 0) --(Lam [Var "x"] (App (Apat (Var "return")) (Apat (Var "x"))))
 
 
@@ -81,15 +95,3 @@ transformLet ((Assign name [] e):ds) expr dclrs i=
 transformLet (d:ds) expr dclrs i= -- case d is for a function
   transformLet ds expr dclrs' i
     where dclrs' = (transformDclr d):dclrs  
-
-convert:: [AllDclr]->[AllDclr]
-convert  [] = []
-convert (d:ds) = (convertAllDclr d): (convert ds)
-
-convertAllDclr:: AllDclr->AllDclr
-convertAllDclr (EndSign (typeSign,times) dclr) =  (WithSign typeSign (convertDclr dclr times))
-convertAllDclr dclrs = dclrs  
-
-convertDclr:: Dclr -> Integer -> Dclr
-convertDclr (Assign name args expr) i= 
-  Assign (name++"Eff") [] (App (Apat (Var ("mConvert"++ show i))) (Apat(Var name)))

@@ -1,15 +1,20 @@
+mapK:: (a->b)-> [a]->[b] ;
+mapK f [] = [];
+mapK f (x:xs) = f x : mapK f xs \n
 
-a:: (a->b) -> (a->c)-> d;
-a = 5 + 3;
+foldrK :: (a -> b -> b) -> b -> [a] -> b ;
+foldrK f z []     =  z ;
+foldrK f z (x:xs) =  f x (foldrK f z xs) \n
 
-map :: (a -> b) -> [a] -> [b];
-map f [] = [];
-map f (x:xs) = f x : map f xs;
-map f (x:xs) = f x : [1,2];
-map f (x:y:xs) = f x : (f y : map f xs);
-foldr'' :: (a -> b -> b) -> b -> [a] -> b;
-foldr'' f z []     =  z;
-foldr'' f z (x:xs) =  f x (foldr'' f z xs);
+plus1 :: (Integer->Integer);
+plus1 x = x+1 \n
 
-mapM' f (x:xs)= let h = f x; t = mapM' f xs in ((f 1):(h:t)) 
+result:: [Integer];
+result = mapK plus1 [1,2] \n
+
+main:: IO [Integer]; 
+main = return result
+
+
+
 

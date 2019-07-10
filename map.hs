@@ -13,11 +13,19 @@ import MConvert
 import ForTesting
 
 
+mapA:: (a-> Eff r b) -> Eff r ([a] -> Eff r [b])
+mapA = 
+  let
+    mapA f [] = return []
+    mapA f (h:t) = (f h) >>= (\h' -> (mapA f t >>= \t' -> return (h':t') ))
+  in
+    mConvert1 mapA  
+
 mapK f [] = []
 mapK f (x:xs) = f x : mapK f xs 
 
 
-map'':: (a-> Eff r b) -> [a] -> Eff r [b]
+--map'':: (a-> Eff r b) -> [a] -> Eff r [b]
 map'' f [] = return []
 map'' f (h:t) = (f h) >>= (\h' -> (map'' f t >>= \t' -> return (h':t') ))
 
@@ -30,7 +38,7 @@ map' f (h:t) = do
                  return (h':t')
 
 --mapNew:: (a-> Eff r b) -> Eff r ([a] -> Eff r [b])
-mapEff:: Monad m => (a-> Eff r b) -> m ([a] -> Eff r [b])
+mapEff:: (a-> Eff r b) -> Eff r ([a] -> Eff r [b])
 mapEff = mConvert1 map''
 
 
@@ -51,7 +59,7 @@ t2 = run $ runState (5::Int) $ runReader (10::Int) $ map''  totalAdd [1..5]
 
 t3 = fst $ run $ runState (5::Int) $ runReader (10::Int) $ mapEff  totalAdd 
 
-t4 = run((mapEff addOne) >>= \g -> g [1,2]) 
+t4 = run((mapA addOne) >>= \g -> g [1,2]) 
 t3'=  run $ runState (5::Int) $ runReader (10::Int) $ t3 [1..5]
 --([17,19,21,23,25],10)
 

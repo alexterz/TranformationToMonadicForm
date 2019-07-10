@@ -104,16 +104,16 @@ ListExpr : Expr ',' ListExpr      { $1 : $3 }
          | Expr                   { $1:[] }
 
 --------------------------------------------------------------------------------
---Declarations are of the form Dclr;...;Dclr
-Dclrs :  Dclr ';' Dclrs            { $1 : $3 } 
-      |  Dclr                      { [$1] }
 
-AllDclrs :  AllDclr ';' AllDclrs   { $1 : $3 } 
+AllDclrs :  AllDclr '\n' AllDclrs   { $1 : $3 } 
          |  AllDclr                { [$1] }
                 
 
-AllDclr: Dclr                      { Dclr $1 }
-       | TypeSignature ';' Dclr   { WithSign $1 $3 } 
+AllDclr: TypeSignature ';' Dclrs   { WithSign $1 $3 } 
+
+--Declarations are of the form Dclr;...;Dclr
+Dclrs :  Dclr ';' Dclrs            { $1 : $3 } 
+      |  Dclr                      { [$1] }
 
 Dclr : VAR Apats '=' Expr          { Assign $1 $2 $4} 
 

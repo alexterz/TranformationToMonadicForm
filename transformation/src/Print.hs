@@ -18,8 +18,9 @@ runPrint (d:ds) = (printAllDclr d ++ runPrint ds)
 
 printAllDclr :: AllDclr -> String
 printAllDclr (Dclr d) = printDclr d ++"\n"--undefined 
-printAllDclr (WithSign typesign d) = (printTypeSign typesign) ++"\n"++ printDclr d ++"\n"
-printAllDclr (EndSign (typesign,times) d) = (printTypeSign typesign) ++"\n"++ printDclr d ++"\n" ++ show times ++"\n"
+printAllDclr (WithSign typesign ds) = (printTypeSign typesign) ++"\n"++ printDclrs ds ++"\n"
+--printAllDclr (SignDef  typeSign defs) = (printTypeSign typesign) ++"\n"++ printFuncDef defs ++"\n"
+printAllDclr (EndSign (typesign,times) d) = (printTypeSign typesign) ++"\n"++ printDclr d  ++"\n"
 
 printTypeSign :: TypeSignature -> String
 printTypeSign (Signature name t) = name ++ " :: " ++ printType t
@@ -39,6 +40,7 @@ printContext :: [Context] -> String
 printContext [] = ""
 printContext [Constraint c n] = c ++ " " ++ n 
 printContext ((Constraint c n):ls) = c ++ " " ++ n ++", " ++ printContext ls 
+
 
 printDclr (Assign name apats expr)= name ++" " ++ printApats apats ++"= " ++ printExpr expr ++ ";" -- VAR Apats '=' Expr
 
