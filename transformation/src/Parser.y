@@ -131,7 +131,7 @@ Type: Container '->' Type           { TFunc $1 $3}
     | Container                     { $1 } 
 
 Container: VAR TypeList             { Container $1 $2 }
-         | VAR '('{-empty-}')'      { Container $1 []} 
+        -- | VAR Void                 { Container $1 []} 
          | SimpleType               { $1 }
 
 TypeList: SimpleType TypeList       { $1 : $2 } 
@@ -140,6 +140,7 @@ TypeList: SimpleType TypeList       { $1 : $2 }
 SimpleType: '('Type')'              { $2 } 
           | '['Type']'              { TList $2}
           | VAR                     { Literal $1 } 
+          | '('{-empty-}')'         { Void }
 
 
 

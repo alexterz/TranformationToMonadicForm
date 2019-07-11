@@ -28,9 +28,10 @@ printTypeSign (ContSignature name cont  t) =name ++ " :: " ++ " (" ++ printConte
 printType :: Type -> String
 printType (Literal name) = name
 printType (TFunc t1 t2) = "(" ++ printType t1  ++"-> "  ++ printType t2 ++ ")" 
-printType (Container name []) = "(" ++ name ++" () )" 
+--printType (Container name []) = "(" ++ name ++" () )" 
 printType (Container name t) = "(" ++ name ++" " ++ printTypeList t ++")" 
 printType (TList t) = "["++ printType t ++"]"
+printType (Void) = "()"
  
 printTypeList :: [Type] -> String
 printTypeList [] = ""
