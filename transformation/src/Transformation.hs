@@ -24,12 +24,12 @@ transformAllDclr (WithSign typesign d) = (WithSign signToMonad (transformDclrs d
 
 transformTypeSign :: TypeSignature -> (TypeSignature,Integer)
 transformTypeSign (Signature name t) = 
-  (Signature name (fst $transformType t 0),times )
-    where times =
-            case (snd $ transformType t 0) of
-              0-> 0
-              x-> x-1
-transformTypeSign (ContSignature name cont  t) =(ContSignature name cont (fst $ transformType t 0), ((snd $ transformType t 0)-1))
+  (Signature name t',times)
+    where (t',times) =transformType t 0
+transformTypeSign (ContSignature name cont t) =
+  (ContSignature name cont t', times)
+    where (t',times) =transformType t 0
+
 
 transformType :: Type -> Integer ->(Type,Integer)
 transformType (Literal name) i= ((Literal name),i)
@@ -57,7 +57,10 @@ transformDclrs:: Dclrs-> Integer -> Dclrs
 transformDclrs ((Assign name apats expr):ds) times = 
   [(Assign name [] expr' )]
   where
-    expr' = Let (transformlocalDclrs ((Assign name apats expr):ds)) (App (Apat (Var ("mConvert" ++ (show times)))) (Apat(Var name)))
+    expr' = case times of 
+        0 -> App (Apat (Var "run")) (Let (transformlocalDclrs ((Assign name apats expr):ds)) (Apat(Var name)))
+        1 -> Let (transformlocalDclrs ((Assign name apats expr):ds)) (Apat(Var name))
+        x-> Let (transformlocalDclrs ((Assign name apats expr):ds)) (App (Apat (Var ("mConvert" ++ (show (x-1))))) (Apat(Var name)))
  
 
 transformlocalDclrs [] = []

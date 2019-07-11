@@ -19,8 +19,7 @@ runPrint (d:ds) = (printAllDclr d ++ runPrint ds)
 printAllDclr :: AllDclr -> String
 printAllDclr (Dclr d) = printDclr d ++"\n"--undefined 
 printAllDclr (WithSign typesign ds) = (printTypeSign typesign) ++"\n"++ printDclrs ds ++"\n"
---printAllDclr (SignDef  typeSign defs) = (printTypeSign typesign) ++"\n"++ printFuncDef defs ++"\n"
-printAllDclr (EndSign (typesign,times) d) = (printTypeSign typesign) ++"\n"++ printDclr d  ++"\n"
+
 
 printTypeSign :: TypeSignature -> String
 printTypeSign (Signature name t) = name ++ " :: " ++ printType t
@@ -29,6 +28,7 @@ printTypeSign (ContSignature name cont  t) =name ++ " :: " ++ " (" ++ printConte
 printType :: Type -> String
 printType (Literal name) = name
 printType (TFunc t1 t2) = "(" ++ printType t1  ++"-> "  ++ printType t2 ++ ")" 
+printType (Container name []) = "(" ++ name ++" () )" 
 printType (Container name t) = "(" ++ name ++" " ++ printTypeList t ++")" 
 printType (TList t) = "["++ printType t ++"]"
  

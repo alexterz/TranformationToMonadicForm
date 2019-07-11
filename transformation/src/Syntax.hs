@@ -11,12 +11,10 @@ type AllDclrs =[AllDclr]
 data AllDclr
   = Dclr Dclr   
   | WithSign TypeSignature [Dclr]
-  | EndSign (TypeSignature,Integer) Dclr
   deriving (Eq,Show)
 
 data Dclr 
   = Assign Name [Apats] Expr 
---  | FuncDclr Name [Name] Expr--Rhs
   deriving (Eq,Show)
 
 data TypeSignature
@@ -29,7 +27,7 @@ data Type
   | TFunc Type Type
   | Container Name [Type]
   | TList Type
-    
+  | Void     
   deriving (Eq,Show)
 
 data Context
