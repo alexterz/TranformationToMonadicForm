@@ -28,6 +28,8 @@ dependencies:
 - transformers
 - extensible-effects
 - extra
+- shqq
+- posix-escape 
 
 
 

@@ -6,5 +6,6 @@ plus1 :: (Integer-> Integer)
 plus1 x = (x+1);
 result :: [Integer]
 result = ((mapK plus1) [1,2]);
-main :: (IO () )
-main = (putStrLn (show result));
+
+main::IO ()
+main= putStrLn $show $result

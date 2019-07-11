@@ -9,5 +9,6 @@ plus1 :: (Integer-> (Eff r Integer ))
 plus1 = (let plus1 x = (return (x+1));in plus1);
 result :: [Integer]
 result = (run (let result = ((return [1,2])>>=( \ x0  -> (((return plus1)>>=( \ x1  -> ((return mapK)>>=( \ g1  -> (g1 x1)))))>>=( \ g0  -> (g0 x0)))));in result));
-main :: (IO () )
-main = (run (let main = ((show result)>>=( \ x0  -> ((return putStrLn)>>=( \ g0  -> (g0 x0)))));in main));
+
+main::IO ()
+main= putStrLn $show $result

@@ -1,3 +1,5 @@
+{-# LANGUAGE QuasiQuotes #-} 
+
 import Syntax (Expr,AllDclr)
 --import Eval (runMain)
 import Parser (parseExpr,parseDclr,parseTokens)
@@ -5,6 +7,7 @@ import Print (runPrint)
 import Transformation ( runTransformation)
 
 
+import System.ShQQ
 import Control.Monad.Trans
 import System.Console.Haskeline
 
@@ -38,15 +41,28 @@ main = runInputT defaultSettings loop
     case minput of
       Nothing -> outputStrLn "Goodbye."
       Just ((':'):('l'):(' '):inputFile) -> 
-                 liftIO (((readInput $ inputFile++".hs")>>= process) >>= (\(str1,str2) -> (writeOutput inputFile str1 str2 )))>> loop    
+                 liftIO 
+                 (((readInput $ inputFile++".hs")>>= process) >>= 
+                 (\(str1,str2) -> (writeOutput inputFile str1 str2 ))>>=
+                 (\_-> [sh| ghc $file1 |])>>=
+                 (\_-> [sh| ghc $file2 |])>>= 
+                 (\_-> ([sh| ./$out1 |]))>>= 
+                 (\out1->([sh| ./$out2 |])>>=
+                 (\out2-> putStrLn ("Output:\n"++out1 ++"\n"++"Transformated Output:\n"++out2)))) 
+                 >> loop
+                  where
+                    file1 = (inputFile ++"Output.hs")
+                    file2 = (inputFile ++ "TranfOutput.hs")
+                    out1 = (inputFile ++"Output")
+                    out2 = (inputFile ++ "TranfOutput")     
         --       ((liftIO  ((readInput inputFile)>>= process)) >>= outputStrLn)>> loop 
       Just input -> (liftIO $ process input) >> loop
 
 
 writeOutput :: FilePath -> String -> String ->IO()
 writeOutput i1 str1 str2 = do 
-  writeFile (i1++"Output.hs") str1
-  writeFile (i1++ "TranfOutput.hs") ("import "++ i1 ++ "MConvert \n" ++ imports ++ str2)
+  writeFile (i1++"Output.hs") (str1++forMain)
+  writeFile (i1++ "TranfOutput.hs") ("import "++ i1 ++ "MConvert \n" ++ imports ++ str2++forMain)
   writeFile (i1++"MConvert.hs") ("module "++ i1 ++ "MConvert" ++mConvert)
 
 readInput:: FilePath ->IO String
@@ -61,7 +77,12 @@ mConvert =
   ++"mConvert0 :: a -> Eff r a \nmConvert0 =return \n\n"
   ++ "mConvert1 :: (t -> a) -> (t -> Eff r a) \nmConvert1 f x = return(f x) \n\n"
   ++ "mConvert2:: (t2 -> t1 -> a) -> t2 -> Eff r (t1 -> Eff r a) \nmConvert2 f x = return $ mConvert1 $ f x \n\n"
-  ++ "mConvert3 :: (t -> t2 -> t1 -> a) -> t -> Eff r (t2 -> Eff r (t1 -> Eff r a)) \nmConvert3 f x =return $ mConvert2 $ f x \n\n"                        
+  ++ "mConvert3 :: (t -> t2 -> t1 -> a) -> t -> Eff r (t2 -> Eff r (t1 -> Eff r a)) \nmConvert3 f x =return $ mConvert2 $ f x \n\n"  
+
+
+forMain:: String
+forMain = 
+ "\nmain::IO ()\nmain= putStrLn $show $result"                      
 
 imports::String
 imports =

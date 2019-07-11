@@ -10,10 +10,7 @@ plus1 :: (Integer->Integer);
 plus1 x = x+1 \n
 
 result:: [Integer];
-result = mapK plus1 [1,2] \n
-
-main:: IO (); 
-main = putStrLn (show result)
+result = mapK plus1 [1,2] 
 
 
 
