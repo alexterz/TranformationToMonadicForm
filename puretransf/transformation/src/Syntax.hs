@@ -1,6 +1,8 @@
 module Syntax where
 
 import Control.Monad
+import Data.Function
+import qualified Data.Map as Map
 
 type Name = String
 
@@ -27,7 +29,7 @@ data Type
   | TFunc Type Type
   | Container Name [Type]
   | TList Type
-  | Void     
+  | Void    
   deriving (Eq,Show)
 
 data Context
@@ -53,7 +55,9 @@ data Apats
     = Var Name
     | Lit Lit 
     | ListArgs [Apats]
-    deriving (Eq,Show)
+    deriving (Eq,Show,Ord)
+
+type TypedApats =Map.Map Apats Type
 
 data Lit
   = LInt Int

@@ -37,7 +37,9 @@ transformType (TFunc t1 t2) i=
   ((TFunc t1'  (Container "Eff" [Literal "r" ,t2'])), k)
     where (t1',j) = transformType t1 i
           (t2',k) = transformType t2 (i+1)    
-transformType (Container name t) i= ((Container name t),i) 
+transformType (Container name t) i= 
+  (t',i)
+  where (t',j) = transformType (last t) i 
 transformType (TList t) i= ((TList t) ,i)
 
 -------------------------------------------------------------------------------------------------------------
@@ -51,7 +53,8 @@ toMonad (Cons expr exprs) _ = returnExpr (Cons expr exprs)
 toMonad (Let ds expr) i = transformLet ds expr [] i
 toMonad (App e1 e2) _ = App e1 e2 --it's a monad itself
 toMonad (Lam apats expr) _ = undefined
-toMonad (Op binop e1 e2) _ = Op binop e1 e2 --App (App (Apat (Var ("("++show binop++")"))) e1) e2--
+toMonad (Op binop e1 e2) _ = (Op binop e1 e2) --App (App (Apat (Var ("("++show binop++")"))) e1) e2--
+toMonad (Monadic e) _ = e
 
 transformDclrs:: Dclrs-> Integer -> Dclrs
 transformDclrs ((Assign name apats expr):ds) times = 
@@ -73,19 +76,31 @@ transformDclr (Assign name apats expr) =
 
 
 transformExpr:: Expr-> Integer-> Expr
-transformExpr (Apat apats) _= returnExpr (Apat apats) -- οκ
-transformExpr (List exprs) _= returnExpr (List exprs) -- οκ
+transformExpr (Apat apats) _= 
+  returnExpr (Apat apats) -- οκ
+transformExpr (List exprs) _= 
+  returnExpr (List exprs) -- οκ
 transformExpr (Cons expr exprs) i= 
-  Bind (toMonad expr i) (Lam [Var ("h"++show i)] 
-  (Bind (transformExprs exprs (i+1)) (Lam [Var ("t"++ show i)] 
+  Bind (Monadic (toMonad expr i)) (Lam [Var ("h"++show i)] 
+  (Bind (Monadic (transformExprs exprs (i+1))) (Lam [Var ("t"++ show i)] 
   (returnExpr (Cons (Apat (Var ("h"++show i))) [Apat (Var ("t"++show i))]))))) --οκ
-transformExpr (Let ds expr) i =  transformLet ds expr [] i -- ok
-transformExpr (App e1 e2) i = 
-  Bind (toMonad e2 i) (Lam [Var ("x"++show i)]
-  (Bind (transformExpr e1 (i+1)) (Lam [Var ("g"++ show i)]
-  (App (Apat (Var ("g"++ show i))) (Apat (Var ("x"++show i))))))) -- ok  
-transformExpr (Lam apats expr) i = undefined
-transformExpr (Op binop e1 e2) i = returnExpr (Op binop e1 e2) --transformExpr (App (App (Apat (Var ("("++show binop++")"))) e1) e2) i-- 
+transformExpr (Let ds expr) i =  
+  transformLet ds expr [] i -- ok
+transformExpr (App (Apat (Var "return")) e2) i = 
+  Monadic (transformExpr e2 i)
+transformExpr (App e1 e2) i =
+  (Bind (Monadic (toMonad e2 i)) (Lam [Var ("x"++show i)]
+  (Bind (Monadic(transformExpr e1 (i+1))) (Lam [Var ("g"++ show i)]
+  (App (Apat (Var ("g"++ show i))) (Apat (Var ("x"++show i)))))))) -- ok  
+transformExpr (Lam apats expr) i =
+  undefined
+transformExpr (Op binop e1 e2) i = 
+  returnExpr (Op binop e1 e2) --transformExpr (App (App (Apat (Var ("("++show binop++")"))) e1) e2) i-- 
+--transformExpr (Bind e1 e2) i = 
+ -- Bind (Monadic (transformExpr e1 i)) (transformExpr e2 i) 
+transformExpr (Monadic e) i =
+  Monadic e    
+
 
 transformExprs:: [Expr] -> Integer -> Expr
 transformExprs [Cons expr exprs] i= transformExpr (Cons expr exprs) i
@@ -94,7 +109,7 @@ transformExprs [exprs] i = toMonad exprs i
 transformLet::[Dclr] -> Expr -> [Dclr] -> Integer -> Expr
 transformLet [] expr dclrs i = Let dclrs (transformExpr expr i)
 transformLet ((Assign name [] e):ds) expr dclrs i=
-  Bind (toMonad e i) (Lam [Var name] (transformLet ds expr dclrs i))
+  Bind (Monadic(toMonad e i)) (Lam [Var name] (transformLet ds expr dclrs i))
 transformLet (d:ds) expr dclrs i= -- case d is for a function
   transformLet ds expr dclrs' i
     where dclrs' = (transformDclr d):dclrs  

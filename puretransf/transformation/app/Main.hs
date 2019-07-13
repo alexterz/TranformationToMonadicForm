@@ -66,7 +66,7 @@ main = runInputT defaultSettings loop
 writeOutput :: FilePath -> String -> String ->IO()
 writeOutput i1 str1 str2 = do 
   writeFile (i1++"Output.hs") (str1++forMain)
-  writeFile (i1++ "TranfOutput.hs") ("import "++ i1 ++ "MConvert \n" ++ imports ++ str2++forMain)
+  writeFile (i1++ "TranfOutput.hs") ("import "++ i1 ++ "MConvert \n" ++ imports ++ str2++forTranfMain)
   writeFile (i1++"MConvert.hs") ("module "++ i1 ++ "MConvert" ++mConvert)
 
 readInput:: FilePath ->IO String
@@ -86,7 +86,10 @@ mConvert =
 
 forMain:: String
 forMain = 
- "\nmain::IO ()\nmain= putStrLn $show $result"                      
+ "\nmain::IO ()\nmain= putStrLn $show $result"
+
+forTranfMain:: String
+forTranfMain =  "\nmain::IO ()\nmain= putStrLn $show $run $result"                     
 
 imports::String
 imports =

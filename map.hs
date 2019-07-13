@@ -13,6 +13,18 @@ import MConvert
 import ForTesting
 
 
+
+mapE:: Eff r (Eff r (a->Eff r b) -> Eff r ([a]-> Eff r [b]))
+mapE = 
+  let
+    -- mapE':: (Eff r (a->Eff r b)) -> ([a]-> Eff r [b])
+     mapE f [] = return []
+     mapE f (h:t) = f>>= (\f'-> ((f' h) >>= (\h' -> (mapE f t >>= \t' -> return (h':t')))))
+  in
+    return (mConvert1 mapE)
+
+    
+
 mapA:: (a-> Eff r b) -> Eff r ([a] -> Eff r [b])
 mapA = 
   let

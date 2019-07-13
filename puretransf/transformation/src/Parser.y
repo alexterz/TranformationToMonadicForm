@@ -86,7 +86,8 @@ Dclr : VAR Apats '=' Expr       { Assign $1 $2 $4}
 Expr : let Dclrs in Expr            { Let $2 $4} 
      | '\\' Apats '->' Expr         { Lam $2 $4 }
      | Expr ':' Expr                { Cons $1 [$3]} 
-     | Expr '>>=' Expr              { Bind $1 $3 } 
+     --| return Expr                  { Monadic $2 }
+     --| Expr '>>=' Expr              { Bind $1 $3 } 
      | Form                         { $1 }
 
 

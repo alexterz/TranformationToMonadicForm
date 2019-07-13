@@ -1,4 +1,4 @@
-module InputMConvert where
+module MConvert where
 
 import Control.Eff
 --παίρνει μία συνάρτηση τύπου (t->a) και τη μετατρέπει σε μία συνάρτηση τύπου (t-> m a), 

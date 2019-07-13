@@ -99,12 +99,9 @@ printExpr (Cons expr exprs) =
 printExpr (App e1 e2) = 
   "("++ printExpr e1 ++ " " ++ printExpr e2 ++")" 
 printExpr (Bind e1 e2) =
-  "("++ printExpr e1 ++ ">>=" ++ printExpr e2 ++")" 
-printExpr (Monadic e) = 
-  "(" ++ printExpr e ++ ")"
-  
-
-
+  "("++ printExpr e1 ++ ">>=" ++ printExpr e2 ++")"
+--printExpr (Monadic expr) =   
+printExpr (Monadic e) = "(" ++ printExpr e ++ ")"
 
 printListExpr:: [Expr]->String
 printListExpr [] = ""
