@@ -11,7 +11,7 @@ type Dclrs = [Dclr]
 type AllDclrs =[AllDclr]
 
 data AllDclr
-  = Dclr Dclr   
+  = Dclrs Dclrs   
   | WithSign TypeSignature [Dclr]
   deriving (Eq,Show)
 
@@ -20,8 +20,13 @@ data Dclr
   deriving (Eq,Show)
 
 data TypeSignature
-  = Signature Name Type
-  | ContSignature Name [Context]  Type
+  = Signature Name TypeScope
+  | ContSignature Name [Context]  TypeScope
+  deriving (Eq,Show)
+
+data TypeScope 
+  = ForAll [Name] Type 
+  | Type Type
   deriving (Eq,Show)
 
 data Type 
@@ -39,10 +44,10 @@ data Context
 data Expr
   = Lam [Apats] Expr
   | App Expr Expr
-  | Let [Dclr] Expr --uses Parsing sequences
+  | Let AllDclrs Expr --uses Parsing sequences
   | Apat Apats
   | Op Binop Expr Expr
-  | Cons Expr [Expr] 
+  | Cons Expr Expr 
   | List [Expr]
   | Bind Expr Expr 
   | Monadic Expr
@@ -64,5 +69,5 @@ data Lit
   | LBool Bool
   deriving (Show, Eq, Ord)
 
-data Binop = Add | Sub | Mul | Eql
+data Binop = Add | Sub | Mul -- | Eql
   deriving (Eq, Ord, Show)

@@ -13,34 +13,52 @@ import qualified Data.Map as Map
 
 
 
-runTransformation :: [AllDclr]->[AllDclr]
-runTransformation [] = []
-runTransformation (d:ds) = (transformAllDclr d): (runTransformation ds)
+runTransformation :: [AllDclr]->TypedApats->[AllDclr]
+runTransformation [] _= []
+runTransformation (d:ds) tApats= (transformAllDclr d tApats): (runTransformation ds tApats)
 
 
-transformAllDclr :: AllDclr->AllDclr
-transformAllDclr (WithSign typesign@(Signature name t) d) = 
-  (WithSign signToMonad ((transformDclrs d times t)))
+transformAllDclr :: AllDclr-> TypedApats -> AllDclr
+transformAllDclr (WithSign typesign@(Signature name t) d) tApats= 
+  (WithSign signToMonad ((transformDclrs d times t' tApats)))
     where 
       (signToMonad,times) = (transformTypeSign typesign)
-transformAllDclr (WithSign typesign@(ContSignature name cont t) d) =
-  (WithSign signToMonad ((transformDclrs d times t)))
+      t' = case t of
+            (ForAll names t1)-> t1
+            (Type t1) -> t1
+transformAllDclr (WithSign typesign@(ContSignature name cont t) d) tApats=
+  (WithSign signToMonad ((transformDclrs d times t' tApats)))
     where 
-      (signToMonad,times) = (transformTypeSign typesign)  
+      (signToMonad,times) = (transformTypeSign typesign)
+      t' = case t of
+            (ForAll names t1)-> t1
+            (Type t1) -> t1  
 
 
 transformTypeSign :: TypeSignature -> (TypeSignature,Integer)
 transformTypeSign (Signature name t) = 
   (Signature name t'',times)
-    where (t',times) =transformType t 0
-          t'' = (Container "Eff" [Literal "r", t'])
+    where (t',times) =transformTypeScope t
+          t'' = case t' of
+             (ForAll names t1)-> (ForAll names (effType t1))
+             (Type t1) -> (Type (effType t1))
+          effType t = (Container "Eff" [Literal "r", t])
 transformTypeSign (ContSignature name cont t) =
   (ContSignature name cont t'', times)
-    where (t',times) =transformType t 0
-          t'' = (Container "Eff" [Literal "r", t'])
+    where (t',times) =transformTypeScope t 
+          t'' = case t' of
+             (ForAll names t1)-> (ForAll names (effType t1))
+             (Type t1) -> (Type (effType t1))
+          effType t = (Container "Eff" [Literal "r", t])
 
 
-transformType :: Type -> Integer ->(Type,Integer)
+transformTypeScope :: TypeScope -> (TypeScope,Integer)
+transformTypeScope (ForAll names t) = ((ForAll (("r"):names) t'),times)
+  where (t',times) =transformType t 0
+transformTypeScope (Type t) = ((Type t'),times)
+ where (t',times) =transformType t 0  
+
+transformType :: Type -> Integer -> (Type,Integer)
 transformType (Literal name) i= ((Literal name),i)
 transformType (TFunc t1 t2) i=
   ((TFunc t1'  (Container "Eff" [Literal "r" ,t2'])), k)
@@ -53,14 +71,7 @@ transformType (TList t) i= ((TList t) ,i)
 -------------------------------------------------------------------------------------------------------------
 returnExpr:: Expr -> Expr
 returnExpr expr = App (Apat (Var "return")) expr
-{-- to make [ma]-> m[a]
-returnListExpr:: [Expr]-> Integer -> [Expr]
-returnListExpr [] _= []
-returnListExpr (x:xs) i= 
-  Bind x (Lam [Var ("x" ++ show i)]
-  (Bind (returnListExpr xs (i+1)) (Lam [Var ("xs"++show i)]
-  (Cons (Apat(Var ("x" ++ show i))) [Apat(Var ("xs" ++ show i))] ))))
---}
+
 
 toMonad:: Expr -> TypedApats ->Integer -> Expr
 toMonad e@(Apat (Lit _)) tApats _= 
@@ -83,25 +94,25 @@ toMonad (Op binop e1 e2) _ = Monadic (Op binop e1 e2) --App (App (Apat (Var ("("
 toMonad (Monadic e) _= Monadic e
 --}
 
-transformDclrs:: Dclrs-> Integer ->Type -> Dclrs
-transformDclrs ((Assign name apats expr):ds) times t = 
+transformDclrs:: Dclrs-> Integer ->Type ->TypedApats -> Dclrs
+transformDclrs ((Assign name apats expr):ds) times t tApats= 
   [(Assign name [] expr' )]
   where
     expr' = case times of 
-        0 -> Let (transformlocalDclrs ((Assign name apats expr):ds) t) (Apat(Var (name++"'")))
-        1 -> App (Apat (Var "return")) (Let (transformlocalDclrs ((Assign name apats expr):ds) t) (Apat(Var (name++"'")))) 
-        x-> App (Apat (Var "return")) (Let (transformlocalDclrs ((Assign name apats expr):ds) t) (App (Apat (Var ("mConvert" ++ (show (x-1))))) (Apat(Var (name++"'")))))
+        0 -> Let [Dclrs (transformlocalDclrs ((Assign name apats expr):ds) t tApats)] (Apat(Var (name++"'")))
+        1 -> returnExpr (Let [Dclrs (transformlocalDclrs ((Assign name apats expr):ds) t tApats)] (Apat(Var (name++"'")))) 
+        x-> returnExpr (Let [Dclrs (transformlocalDclrs ((Assign name apats expr):ds) t tApats)] (App (Apat (Var ("mConvert" ++ (show (x-1))))) (Apat(Var (name++"'")))))
  
 
-transformlocalDclrs:: Dclrs -> Type-> Dclrs
-transformlocalDclrs [] _= []
-transformlocalDclrs (d:ds) t = (transformDclr d t):(transformlocalDclrs ds t)
+transformlocalDclrs:: Dclrs -> Type-> TypedApats-> Dclrs
+transformlocalDclrs [] _ tApats= []
+transformlocalDclrs (d:ds) t tApats= (transformDclr d t tApats):(transformlocalDclrs ds t tApats)
 
-transformDclr:: Dclr -> Type -> Dclr
-transformDclr (Assign name apats expr) t = 
+transformDclr:: Dclr -> Type -> TypedApats -> Dclr
+transformDclr (Assign name apats expr) t tApats= 
   Assign (name++"'") apats expr'
     where expr' = (transformExpr expr typedApats 0) --(Lam [Var "x"] (App (Apat (Var "return")) (Apat (Var "x"))))
-          typedApats = transformApats apats t Map.empty
+          typedApats = transformApats apats t tApats
 
 transformApats:: [Apats]-> Type-> TypedApats -> TypedApats
 transformApats [] typesign tApats = tApats 
@@ -134,22 +145,25 @@ insertApats (l:ls) t tApats =
 transformExpr:: Expr-> TypedApats -> Integer-> Expr
 transformExpr e@(Apat apats) tApats  i= --  οκ 
   toMonad e tApats i 
-transformExpr (List es) tApats i=  returnExpr (List es )---no  (transformExprs es tApats i)
+transformExpr (List es) tApats i=  App (Apat(Var "sequence")) (List (transformExprs es tApats i))---ok
 transformExpr (App e1 e2) tApats i = --ok 
   Bind e2' (Lam [Var ("x"++show i)]                                    -- Na dw ti ginetai an to e2 otan einai monad kai oxi func
   (Bind e1' (Lam [Var ("g"++ show i)]
-  (App (Apat (Var ("g"++ show i))) (Apat(Var ("x"++show i))))))) -- ok
+  (App (Apat (Var ("g"++ show i))) (Apat(Var ("x"++show i))))))) 
   where
     e1' = transformExpr e1 tApats (i+1)  
     e2' = transformExpr e2 tApats (i+1) 
-transformExpr (Cons expr [e2]) tApats  i= --ok
-  Bind (transformExpr expr tApats (i+1)) (Lam [Var ("h"++show i)]
-  (Bind (transformExpr e2 tApats  (i+1)) (Lam [Var ("t"++show i)] 
-  (returnExpr (Cons (Apat (Var ("h"++show i))) [Apat (Var ("t"++show i))]))))) --οκ
-transformExpr (Cons expr exprs) tApats  i= --nooo
-  Bind (transformExpr expr tApats (i+1)) (Lam [Var ("h"++show i)] 
-  (returnExpr (Cons (Apat (Var ("h"++show i))) (transformExprs exprs tApats (i+1))))) --οκ
-transformExpr (Op binop e1 e2) tApats i = returnExpr (Op binop e1 e2)--no      
+transformExpr (Cons e1 e2) tApats  i= --οκ
+  transformExpr (App (App (Apat(Var "cons")) e1) e2) tApats (i+1)
+transformExpr (Op binop e1 e2) tApats i = --ok
+  transformExpr (App (App (Apat(Var x)) e1) e2) tApats (i+1)
+  where
+    x= case binop of
+         Add -> "plus"
+         Sub -> "sub"
+         Mul -> "multiple"
+transformExpr (Let ds expr) tApats i =  
+  Let (runTransformation ds tApats) (transformExpr expr tApats (i+1))        
 
 
 transformExprs:: [Expr] -> TypedApats -> Integer -> [Expr]

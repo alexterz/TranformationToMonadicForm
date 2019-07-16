@@ -1,22 +1,23 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 import InputMConvert 
 import Control.Eff
+import Control.Monad
 
 foldrK :: (Eff r ((a-> (Eff r (b-> (Eff r b )) ))-> (Eff r (b-> (Eff r ([a]-> (Eff r b )) )) )) )
-foldrK = (return (let foldrK' f z [] = (return z);foldrK' f z (x : xs) = (((return xs)>>=( \ x1  -> (((return z)>>=( \ x2  -> (((return f)>>=( \ x3  -> (foldrK>>=( \ g3  -> (g3 x3)))))>>=( \ g2  -> (g2 x2)))))>>=( \ g1  -> (g1 x1)))))>>=( \ x0  -> (((return x)>>=( \ x1  -> ((return f)>>=( \ g1  -> (g1 x1)))))>>=( \ g0  -> (g0 x0)))));in (mConvert2 foldrK')));
+foldrK = (return (let foldrK' f z [] = (return z);foldrK' f z (x : xs) = (((return xs)>>=( \ x1  -> (((return z)>>=( \ x2  -> (((return f)>>=( \ x3  -> (foldrK>>=( \ g3  -> (g3 x3)))))>>=( \ g2  -> (g2 x2)))))>>=( \ g1  -> (g1 x1)))))>>=( \ x0  -> (((return x)>>=( \ x1  -> ((return f)>>=( \ g1  -> (g1 x1)))))>>=( \ g0  -> (g0 x0)))));;in (mConvert2 foldrK')));
 mapK :: (Eff r ((a-> (Eff r b ))-> (Eff r ([a]-> (Eff r [b] )) )) )
-mapK = (return (let mapK' f [] = (return []);mapK' f (x : xs) = (((return x)>>=( \ x1  -> ((return f)>>=( \ g1  -> (g1 x1)))))>>=( \ h0  -> (((return xs)>>=( \ x1  -> (((return f)>>=( \ x2  -> (mapK>>=( \ g2  -> (g2 x2)))))>>=( \ g1  -> (g1 x1)))))>>=( \ t0  -> (return (h0:t0))))));in (mConvert1 mapK')));
-listCons :: (Eff r (a-> (Eff r ([a]-> (Eff r [a] )) )) )
-listCons = (return (let listCons' x xs = ((return x)>>=( \ h0  -> ((return xs)>>=( \ t0  -> (return (h0:t0))))));in (mConvert1 listCons')));
+mapK = (return (let mapK' f [] = (sequence []);mapK' f (x : xs) = (((return xs)>>=( \ x2  -> (((return f)>>=( \ x3  -> (mapK>>=( \ g3  -> (g3 x3)))))>>=( \ g2  -> (g2 x2)))))>>=( \ x1  -> ((((return x)>>=( \ x3  -> ((return f)>>=( \ g3  -> (g3 x3)))))>>=( \ x2  -> (cons>>=( \ g2  -> (g2 x2)))))>>=( \ g1  -> (g1 x1)))));;in (mConvert1 mapK')));
 plus1 :: (Eff r (Integer-> (Eff r Integer )) )
-plus1 = (return (let plus1' x = (return (x+1));in plus1'));
+plus1 = (return (let plus1' x = ((return 1)>>=( \ x1  -> (((return x)>>=( \ x2  -> (plus>>=( \ g2  -> (g2 x2)))))>>=( \ g1  -> (g1 x1)))));;in plus1'));
+plus2 :: (Eff r (Integer-> (Eff r (Integer-> (Eff r Integer )) )) )
+plus2 = (return (let plus2' x y = ((return y)>>=( \ x1  -> (((return x)>>=( \ x2  -> (plus>>=( \ g2  -> (g2 x2)))))>>=( \ g1  -> (g1 x1)))));;in (mConvert1 plus2')));
 alex :: (Eff r (Integer-> (Eff r Integer )) )
-alex = (return (let alex' x = (return (x-1));in alex'));
+alex = (return (let alex' x = ((return 1)>>=( \ x1  -> (((return x)>>=( \ x2  -> (sub>>=( \ g2  -> (g2 x2)))))>>=( \ g1  -> (g1 x1)))));;in alex'));
+maplet :: forall r a b .(Eff r ((a-> (Eff r b ))-> (Eff r ([a]-> (Eff r [b] )) )) )
+maplet = (return (let maplet' f [] = (sequence []);maplet' f (x : xs) = (let h :: (Eff r b );h = (let h' = ((return x)>>=( \ x0  -> ((return f)>>=( \ g0  -> (g0 x0)))));;in h');t :: (Eff r [b] );t = (let t' = ((return xs)>>=( \ x0  -> (((return f)>>=( \ x1  -> (maplet>>=( \ g1  -> (g1 x1)))))>>=( \ g0  -> (g0 x0)))));;in t');in (t>>=( \ x2  -> ((h>>=( \ x3  -> (cons>>=( \ g3  -> (g3 x3)))))>>=( \ g2  -> (g2 x2))))));;in (mConvert1 maplet')));
 result :: (Eff r [Integer] )
-result = (let result' = (((return 1)>>=( \ h1  -> ((return [2,3])>>=( \ t1  -> (return (h1:t1))))))>>=( \ x0  -> ((plus1>>=( \ x1  -> (mapK>>=( \ g1  -> (g1 x1)))))>>=( \ g0  -> (g0 x0)))));in result');
-
-plus::(Num a)=> Eff r (a->Eff r (a-> Eff r a))
-plus = let plus x y = return (x+y) in return (mConvert1 plus)
-
+result = (let result' = ((((sequence [(return 1),(return 2)])>>=( \ x4  -> (((return 3)>>=( \ x5  -> (cons>>=( \ g5  -> (g5 x5)))))>>=( \ g4  -> (g4 x4)))))>>=( \ x2  -> (((return 2)>>=( \ x3  -> (cons>>=( \ g3  -> (g3 x3)))))>>=( \ g2  -> (g2 x2)))))>>=( \ x0  -> ((alex>>=( \ x1  -> (maplet>>=( \ g1  -> (g1 x1)))))>>=( \ g0  -> (g0 x0)))));;in result');
 
 main::IO ()
 main= putStrLn $show $run $result

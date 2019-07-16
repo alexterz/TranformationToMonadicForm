@@ -13,7 +13,42 @@ import MConvert
 import ForTesting
 
 
-plus:: (Num a ) => Eff r (a->Eff r (a-> Eff r a))
+
+
+
+
+maplet:: (a-> b) -> [a]->  [b]
+maplet f [] = []
+maplet f (x:xs) =
+  let
+    h= f x
+    t = maplet f xs 
+  in
+    h:t
+
+mapletK::  (Eff r ( (a->Eff r b) -> Eff r ([a]-> Eff r [b])))
+mapletK = 
+  let
+     mapletK':: (a->Eff r b)-> [a]->Eff r [b]
+     mapletK' f [] = return []
+     mapletK' f (x:xs) = 
+      let
+         h = f x
+         t = (mapletK >>= (\g-> (g f)))>>=(\g1-> (g1 xs))
+      in 
+         h>>=(\h1->(t>>=(\t1-> return (h1:t1))))  
+  in 
+    return(mConvert1 mapletK')   
+
+
+cons:: Eff r (a-> Eff r ([a]->Eff r [a]))
+cons =
+  let
+     cons' x xs = return (x:xs)
+  in 
+     return (mConvert1 cons')   
+
+plus:: forall a b r.(Num a ) => Eff r (a->Eff r (a-> Eff r a))
 plus = 
   let
      plus x y = return (x+y)

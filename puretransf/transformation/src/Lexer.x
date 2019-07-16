@@ -32,6 +32,7 @@ tokens :-
   \::                           { \s -> TokenHasType }
   "=>"                          { \s -> TokenContext }
 --  return                        { \s -> TokenReturn } 
+  forall                        { \s -> TokenForAll }
   let                           { \s -> TokenLet }
   True                          { \s -> TokenTrue }
   False                         { \s -> TokenFalse }
@@ -55,6 +56,7 @@ tokens :-
   \:                            { \s -> TokenCons }
   \_                            { \s -> TokenUnderScore }
   \>>=                          { \s -> TokenBind }
+  \.                            { \s -> TokenDot }
    
 
 {
@@ -62,7 +64,8 @@ tokens :-
 data Token
   = TokenNewLine
   | TokenHasType
-  | TokenContext 
+  | TokenContext
+  | TokenForAll  
   | TokenLet
 --  | TokenReturn
   | TokenTrue
@@ -87,7 +90,8 @@ data Token
   | TokenCons  
   | TokenEOF
   | TokenUnderScore
-  | TokenBind 
+  | TokenBind
+  | TokenDot 
 
   deriving (Eq,Show)
 

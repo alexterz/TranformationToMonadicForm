@@ -33,6 +33,7 @@ import Control.Monad.Except
     '::'   { TokenHasType }
     '=>'   { TokenContext } 
 --    return { TokenReturn }
+    forall { TokenForAll }
     let    { TokenLet }
     true   { TokenTrue }
     false  { TokenFalse }
@@ -56,6 +57,7 @@ import Control.Monad.Except
     '_'    { TokenUnderScore }
     '>>='  { TokenBind }
     ';'    { TokenSemicolon }
+    '.'    { TokenDot}
     
 
 -- Osperators
@@ -83,9 +85,9 @@ Dclr : VAR Apats '=' Expr       { Assign $1 $2 $4}
 --------------------------------------------------------------------------------
 
 --let VAR '=' Expr in Expr    { App (Lam $2 $6) $4 }
-Expr : let Dclrs in Expr            { Let $2 $4} 
+Expr : let AllDclrs in Expr         { Let $2 $4} 
      | '\\' Apats '->' Expr         { Lam $2 $4 }
-     | Expr ':' Expr                { Cons $1 [$3]} 
+     | Expr ':' Expr                { Cons $1 $3} 
      --| return Expr                  { Monadic $2 }
      --| Expr '>>=' Expr              { Bind $1 $3 } 
      | Form                         { $1 }
@@ -121,14 +123,21 @@ ListExpr : Expr ',' ListExpr      { $1 : $3 }
 --------------------------------------------------------------------------------
 
 
-TypeSignature: VAR '::' Type               {Signature $1 $3} 
-             | VAR '::' Contexts '=>' Type {ContSignature $1 $3 $5}
+TypeSignature: VAR '::' TypeScope            {Signature $1 $3} 
+             | VAR '::' Contexts '=>' TypeScope   {ContSignature $1 $3 $5}
+             
+
+Names : VAR  Names                 { $1 : $2 }
+      | VAR                        { [$1] }
 
 Contexts: '('Context')'             { $2 }
         | VAR VAR                   { [Constraint $1 $2]}
 
 Context: VAR VAR ',' Context        { (Constraint $1 $2):$4} 
        | VAR VAR                    { [Constraint $1 $2]}
+
+TypeScope: Type                               { Type $1 }  
+         | forall Names '.' '(' Type')' { ForAll $2 $5}       
              
 Type: Container '->' Type           { TFunc $1 $3}  
     | Container                     { $1 } 
