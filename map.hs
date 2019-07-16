@@ -13,6 +13,12 @@ import MConvert
 import ForTesting
 
 
+plus:: (Num a ) => Eff r (a->Eff r (a-> Eff r a))
+plus = 
+  let
+     plus x y = return (x+y)
+  in
+     return (mConvert1 plus)   
 
 mapE:: Eff r (Eff r (a->Eff r b) -> Eff r ([a]-> Eff r [b]))
 mapE = 
@@ -23,13 +29,15 @@ mapE =
   in
     return (mConvert1 mapE)
 
-mapA:: (a-> Eff r b) -> Eff r ([a] -> Eff r [b])
+
+
+mapA:: Eff r ((a-> Eff r b) -> Eff r ([a] -> Eff r [b]))
 mapA = 
   let
     mapA f [] = return []
     mapA f (h:t) = (f h) >>= (\h' -> (mapA f t >>= \t' -> return (h':t') ))
   in
-    mConvert1 mapA  
+    return (mConvert1 mapA)  
 
 mapK f [] = []
 mapK f (x:xs) = f x : mapK f xs 
@@ -69,7 +77,7 @@ t2 = run $ runState (5::Int) $ runReader (10::Int) $ map''  totalAdd [1..5]
 
 t3 = fst $ run $ runState (5::Int) $ runReader (10::Int) $ mapEff  totalAdd 
 
-t4 = run((mapA addOne) >>= \g -> g [1,2]) 
+t4 = run((mapA >>= (\f -> f addOne)) >>= \g -> g [1,2]) 
 t3'=  run $ runState (5::Int) $ runReader (10::Int) $ t3 [1..5]
 --([17,19,21,23,25],10)
 

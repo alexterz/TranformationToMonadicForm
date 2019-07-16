@@ -1,18 +1,24 @@
-trial:: (Integer->Integer)-> Integer->Integer;
-trial f 0 = 0;
-trial f x = trial f ((f x)-1)  \n
-
-ex::Integer;
-ex = trial alex 2\n
+foldrK            :: (a -> b -> b) -> b -> [a] -> b;
+foldrK f z []     =  z;
+foldrK f z (x:xs) =  f x (foldrK f z xs)\n
 
 
-func:: (Integer->Integer)->Integer->Integer;
-func f x = f x\n
+mapK:: (a->b)-> [a]->[b];
+mapK f [] = [];
+mapK f (x:xs) = f x : mapK f xs \n
+
+listCons:: a->[a]->[a];
+listCons x xs = x:xs \n
+
+plus1:: Integer->Integer;
+plus1 x= x+1\n
+
+
 alex::Integer->Integer;
 alex x = x-1\n
 
-result:: Integer;
-result = func alex 1 
+result:: [Integer];
+result = mapK plus1 (1:[2,3])
 
 
 

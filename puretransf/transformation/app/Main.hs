@@ -27,10 +27,10 @@ process input = do
           Right ast ->  ((execPrint ast),(execTransformation ast)) --show ast ++"\n"++ 
  
 execPrint :: [AllDclr]-> String
-execPrint ast = (runPrint ast) -- $ ("Syntax Dclr: " ++ show ast ++ "\n") ++
+execPrint ast = runPrint ast--("{--Syntax Dclr: " ++ show ast ++ "--}\n") ++(runPrint ast)++ "\n" 
 
 execTransformation :: [AllDclr]-> (String)
-execTransformation ast = (runPrint transformed) --show (runTransformation ast) ++"\n" ++
+execTransformation ast = runPrint transformed --("{--"++show (runTransformation ast)) ++"--}\n" ++(runPrint transformed) --
   where transformed = runTransformation ast 
 
 main :: IO ()
@@ -49,10 +49,8 @@ main = runInputT defaultSettings loop
                  (\comp2-> [sh| ./$exec1 |]>>= 
                  (\exec1->([sh| ./$exec2 |])>>=
                  (\exec2-> putStrLn (comp1++"Output:\n"++exec1 ++"\n"++comp2++"Transformated Output:\n"++exec2)))))>>=
-                 (\_->[sh| rm $out1 |])>>= 
-                 (\_->[sh| rm $out2 |]))
-                 >> loop
-                  where
+                 (\_->[sh| rm $out1 $out2 $exec1 $exec2|])) >> loop
+                 where
                     file1 = (inputFile ++"Output.hs")
                     file2 = (inputFile ++ "TranfOutput.hs")
                     out1 = (inputFile ++"Output.o")
@@ -89,7 +87,12 @@ forMain =
  "\nmain::IO ()\nmain= putStrLn $show $result"
 
 forTranfMain:: String
-forTranfMain =  "\nmain::IO ()\nmain= putStrLn $show $run $result"                     
+forTranfMain = plus ++ "\nmain::IO ()\nmain= putStrLn $show $run $result"                     
+
+plus:: String 
+plus = 
+ "\nplus::(Num a)=> Eff r (a->Eff r (a-> Eff r a))\n"++
+ "plus = let plus x y = return (x+y) in return (mConvert1 plus)\n\n"
 
 imports::String
 imports =

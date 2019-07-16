@@ -167,8 +167,9 @@ ListApats : Apat ',' ListApats      { $1 : $3 }
           | Apat                    { [$1] }
 
 TailArgs : ListArgs                 { $1 }
-         |'(' ListArgs ')'          { $2 } --edw ginetai ena shift/reduce conflict alla to thelw gia (x:(y:ys)) pws alliws??
+        -- |'(' ListArgs ')'          { $2 } --edw ginetai ena shift/reduce conflict alla to thelw gia (x:(y:ys)) pws alliws??
          | VAR                      { [ListArgs [Var $1]] } --{[Var $1]}
+        -- |'(' TailArgs ')'          { $2 } -- 3 reduce/reduce conflicts
 
 
  

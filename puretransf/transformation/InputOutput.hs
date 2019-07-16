@@ -1,13 +1,15 @@
-trial :: ((Integer-> Integer)-> (Integer-> Integer))
-trial f 0 = 0;trial f x = ((trial f) ((f x)-1));
-ex :: Integer
-ex = ((trial alex) 2);
-func :: ((Integer-> Integer)-> (Integer-> Integer))
-func f x = (f x);
+foldrK :: ((a-> (b-> b))-> (b-> ([a]-> b)))
+foldrK f z [] = z;foldrK f z (x : xs) = ((f x) (((foldrK f) z) xs));
+mapK :: ((a-> b)-> ([a]-> [b]))
+mapK f [] = [];mapK f (x : xs) = ((f x):((mapK f) xs));
+listCons :: (a-> ([a]-> [a]))
+listCons x xs = (x:xs);
+plus1 :: (Integer-> Integer)
+plus1 x = (x+1);
 alex :: (Integer-> Integer)
 alex x = (x-1);
-result :: Integer
-result = ((func alex) 1);
+result :: [Integer]
+result = ((mapK plus1) (1:[2,3]));
 
 main::IO ()
 main= putStrLn $show $result
