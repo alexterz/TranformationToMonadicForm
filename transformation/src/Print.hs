@@ -12,18 +12,27 @@ import Data.Function
 import qualified Data.Map as Map
 
 
-runPrint :: [AllDclr] -> String
-runPrint [] = ""
-runPrint (d:ds) = (printAllDclr d ++ runPrint ds)
+runPrint :: [AllDclr] -> String ->  String
+runPrint [] s = ""
+runPrint (d:ds) s = (printAllDclr d s ++ runPrint ds s)
 
-printAllDclr :: AllDclr -> String
-printAllDclr (Dclr d) = printDclr d ++"\n"--undefined 
-printAllDclr (WithSign typesign ds) = (printTypeSign typesign) ++"\n"++ printDclrs ds ++"\n"
+printAllDclr :: AllDclr -> String -> String
+printAllDclr (Dclrs d) s = printDclrs d ++";"--undefined 
+printAllDclr (WithSign typesign ds) s= (printTypeSign typesign) ++s++ printDclrs ds ++s1
+ where s1 = (if (s =="\n") then "\n" else "")
 
 
 printTypeSign :: TypeSignature -> String
-printTypeSign (Signature name t) = name ++ " :: " ++ printType t
-printTypeSign (ContSignature name cont  t) =name ++ " :: " ++ " (" ++ printContext cont ++ ") =>"++ printType t
+printTypeSign (ContSignature name []  t) = name ++ " :: " ++ printTypeScope t
+printTypeSign (ContSignature name cont  t) =name ++ " :: " ++ " (" ++ printContext cont ++ ") =>"++ printTypeScope t
+
+printTypeScope:: TypeScope -> String
+printTypeScope (ForAll names t) = "forall "++ printNames names ++"." ++ printType t 
+printTypeScope (Type t) = printType t 
+
+printNames:: [Name] -> String
+printNames [] = ""
+printNames (n:ns) = n ++ " " ++ printNames ns 
 
 printType :: Type -> String
 printType (Literal name) = name
@@ -39,8 +48,13 @@ printTypeList (t:ts) = printType t ++ " " ++ printTypeList ts
 
 printContext :: [Context] -> String
 printContext [] = ""
-printContext [Constraint c n] = c ++ " " ++ n 
-printContext ((Constraint c n):ls) = c ++ " " ++ n ++", " ++ printContext ls 
+printContext [Constraint c n] = printConstraint c ++ " " ++ n 
+printContext ((Constraint c n):ls) = printConstraint c ++ " " ++ n ++", " ++ printContext ls
+
+
+printConstraint:: Constraint-> String
+printConstraint (Member n1 n2) = "Member ("++ n1 ++ " "++ n2 ++")" 
+printConstraint (Class n) = n 
 
 
 printDclr (Assign name apats expr)= name ++" " ++ printApats apats ++"= " ++ printExpr expr ++ ";" -- VAR Apats '=' Expr
@@ -82,7 +96,7 @@ printListElem (l:ls) = printApat l ++ "," ++ printListElem ls
 
 printExpr:: Expr -> String
 printExpr (Let ds expr) = 
- "("++ "let " ++  printDclrs ds ++ "in " ++ printExpr expr ++")" 
+ "("++ "let " ++  (runPrint ds ";") ++ "in " ++ printExpr expr ++")" 
 printExpr (Lam apats expr) =
   "(" ++ " \\ " ++ printApats apats ++ " -> " ++  printExpr expr ++")" 
 printExpr (Op binop e1 e2) = 
@@ -91,20 +105,16 @@ printExpr (Apat apats) =
   printApat apats 
 printExpr (List exprs) = 
   "[" ++ printListExpr exprs ++"]"  
-printExpr (Cons expr exprs) =
-  case exprs of
-     [Apat (Var xs)] ->  "(" ++ printExpr expr ++ ":" ++ printExpr (Apat (Var xs)) ++")" 
-     [Cons e es] -> "(" ++ printExpr expr ++":" ++ printExpr (Cons e es) ++")"    
-     otherwise -> "(" ++ printExpr expr ++ ":" ++ printListExpr exprs ++ ")" 
+printExpr (Cons e1 e2) =
+     "(" ++ printExpr e1 ++ ":" ++ printExpr e2 ++")"
+    -- Cons e es -> "(" ++ printExpr expr ++":" ++ printExpr (Cons e es) ++")"    
+   --  otherwise -> "(" ++ printExpr expr ++ ":" ++ printListExpr exprs ++ ")" 
 printExpr (App e1 e2) = 
   "("++ printExpr e1 ++ " " ++ printExpr e2 ++")" 
 printExpr (Bind e1 e2) =
-  "("++ printExpr e1 ++ ">>=" ++ printExpr e2 ++")" 
-printExpr (Monadic e) = 
-  "(" ++ printExpr e ++ ")"
-  
-
-
+  "("++ printExpr e1 ++ ">>=" ++ printExpr e2 ++")"
+--printExpr (Monadic expr) =   
+printExpr (Monadic e) = "(" ++ printExpr e ++ ")"
 
 printListExpr:: [Expr]->String
 printListExpr [] = ""
@@ -115,6 +125,6 @@ printBiOp:: Binop -> String
 printBiOp (Add) = "+"
 printBiOp (Sub) = "-"
 printBiOp (Mul) = "*"
-printBiOp (Eql) = "=="
+--printBiOp (Eql) = "=="
 
 

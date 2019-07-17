@@ -1,41 +1,46 @@
+foldrK            :: (a -> b -> b) -> b -> [a] -> b;
+foldrK f z []     =  z;
+foldrK f z (x:xs) =  f x (foldrK f z xs)\n
 
-mapK:: (a->b)-> [a]->[b] ;
+
+mapK:: (a->b)-> [a]->[b];
 mapK f [] = [];
 mapK f (x:xs) = f x : mapK f xs \n
 
-foldrK :: (a -> b -> b) -> b -> [a] -> b ;
-foldrK f z []     =  z ;
-foldrK f z (x:xs) =  f x (foldrK f z xs) \n
 
-plus1 :: (Integer->Integer);
-plus1 x = x+1 \n
+plus1:: Integer->Integer;
+plus1 x= x+1\n
 
-id':: a -> a;
-id' a = a \n
+plus2::Integer->Integer->Integer;
+plus2 x y = x+y\n
 
-intermed1:: [Integer] -> [Integer];
-intermed1 [] = [];
-intermed1 (x:xs) = (id' x):(intermed1 xs)\n
+alex::Integer->Integer;
+alex x = x-1\n
 
+intermediate:: [Integer]->[Integer];
+intermediate = maplet alex\n
 
+inter:: (Integer->Integer->Integer)-> (Integer->[Integer]->Integer);
+inter f =foldrK f\n
 
-monFunc:: a-> IO (a -> IO a);
-monFunc x = return (return ) \n
+one::Num s => State s Integer;
+one = return 0\n
 
-monadic:: a-> IO a; 
-monadic a = return a \n
-
-lit:: IO Integer;
-lit = return 1 \n
-
-
-
-one:: Integer;
-one = 1 \n
+maplet:: forall a b .((a-> b) -> [a]->  [b]);
+maplet f [] = [];
+maplet f (x:xs) =
+  let
+    h:: b;
+    h= f x\n
+    t:: [b];
+    t = maplet f xs\n
+    z:: Integer;
+    z= alex 1
+  in
+    h:t \n
 
 result:: [Integer];
-result = mapK plus1 [1,2] 
-
+result = intermediate (2:3:[1,2]) 
 
 
 

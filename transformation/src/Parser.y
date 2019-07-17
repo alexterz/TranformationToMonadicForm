@@ -33,6 +33,7 @@ import Control.Monad.Except
     '::'   { TokenHasType }
     '=>'   { TokenContext } 
 --    return { TokenReturn }
+    forall { TokenForAll }
     let    { TokenLet }
     true   { TokenTrue }
     false  { TokenFalse }
@@ -56,6 +57,7 @@ import Control.Monad.Except
     '_'    { TokenUnderScore }
     '>>='  { TokenBind }
     ';'    { TokenSemicolon }
+    '.'    { TokenDot}
     
 
 -- Osperators
@@ -66,6 +68,7 @@ import Control.Monad.Except
 %left '+' '-'
 %left '*'
 %%
+
 
 
 AllDclrs :  AllDclr '\n' AllDclrs  { $1 : $3 } 
@@ -83,10 +86,11 @@ Dclr : VAR Apats '=' Expr       { Assign $1 $2 $4}
 --------------------------------------------------------------------------------
 
 --let VAR '=' Expr in Expr    { App (Lam $2 $6) $4 }
-Expr : let Dclrs in Expr            { Let $2 $4} 
+Expr : let AllDclrs in Expr         { Let $2 $4} 
      | '\\' Apats '->' Expr         { Lam $2 $4 }
-     | Expr ':' Expr                { Cons $1 [$3]} 
-     | Expr '>>=' Expr              { Bind $1 $3 } 
+     | Expr ':' Expr                { Cons $1 $3} 
+     --| return Expr                  { Monadic $2 }
+     --| Expr '>>=' Expr              { Bind $1 $3 } 
      | Form                         { $1 }
 
 
@@ -120,15 +124,26 @@ ListExpr : Expr ',' ListExpr      { $1 : $3 }
 --------------------------------------------------------------------------------
 
 
-TypeSignature: VAR '::' Type               {Signature $1 $3} 
-             | VAR '::' Contexts '=>' Type {ContSignature $1 $3 $5}
+TypeSignature: VAR '::' TypeScope                 {ContSignature $1 [] $3} 
+             | VAR '::' Contexts '=>' TypeScope   {ContSignature $1 $3 $5}
+             
 
 Contexts: '('Context')'             { $2 }
-        | VAR VAR                   { [Constraint $1 $2]}
+        | VAR VAR                   { [Constraint (Class $1) $2]}
+                 
 
-Context: VAR VAR ',' Context        { (Constraint $1 $2):$4} 
-       | VAR VAR                    { [Constraint $1 $2]}
+Context: VAR VAR ',' Context        { (Constraint (Class $1) $2) :$4} ---edw 2 shift/reduce conflicts
+       | VAR VAR                    { [Constraint (Class $1) $2]}
+
+--Constraint: VAR                     { Class $1 }
+--          | '('VAR VAR ')'          { Member $2 $3 } 
+
+TypeScope: Type                               { Type $1 }  
+         | forall Names '.' '(' Type')' { ForAll $2 $5}       
              
+Names : VAR  Names                 { $1 : $2 }
+      | VAR                        { [$1] }
+
 Type: Container '->' Type           { TFunc $1 $3}  
     | Container                     { $1 } 
 
@@ -166,8 +181,9 @@ ListApats : Apat ',' ListApats      { $1 : $3 }
           | Apat                    { [$1] }
 
 TailArgs : ListArgs                 { $1 }
-         |'(' ListArgs ')'          { $2 } --edw ginetai ena shift/reduce conflict alla to thelw gia (x:(y:ys)) pws alliws??
+        -- |'(' ListArgs ')'          { $2 } --edw ginetai ena shift/reduce conflict alla to thelw gia (x:(y:ys)) pws alliws??
          | VAR                      { [ListArgs [Var $1]] } --{[Var $1]}
+        -- |'(' TailArgs ')'          { $2 } -- 3 reduce/reduce conflicts
 
 
  

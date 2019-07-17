@@ -16,7 +16,6 @@ import ForTesting
 
 
 
-
 maplet:: (a-> b) -> [a]->  [b]
 maplet f [] = []
 maplet f (x:xs) =
