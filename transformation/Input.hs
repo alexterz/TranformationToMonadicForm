@@ -23,8 +23,8 @@ intermediate = maplet alex\n
 inter:: (Integer->Integer->Integer)-> (Integer->[Integer]->Integer);
 inter f =foldrK f\n
 
-one::Num s => State s Integer;
-one = return 0\n
+one::Monad m=> m Integer -> m Integer;
+one x = x\n
 
 maplet:: forall a b .((a-> b) -> [a]->  [b]);
 maplet f [] = [];

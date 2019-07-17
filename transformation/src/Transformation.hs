@@ -42,32 +42,39 @@ transformTypeSign (ContSignature name cont t) =
                     otherwise -> (Container "Eff" [Literal "r", t])
 
 
-transformTypeScope :: TypeScope -> [Context] -> (TypeScope,[Context])
-transformTypeScope (ForAll names t) cont= ((ForAll (("r"):names) t'),uniq cont')
-  where (t',cont') =transformType t cont
-transformTypeScope (Type t) cont = ((Type t'),cont')
- where (t',cont') =transformType t cont 
+transformTypeScope :: TypeScope -> [Context]-> (TypeScope,[Context])
+transformTypeScope (ForAll names t) cont= 
+  ((ForAll (("r"):names) t'),uniq cont'')
+  where (t',cont',delcont) =transformType t cont []
+        cont'' = filter (\x -> x `notElem` delcont) cont'
+transformTypeScope (Type t) cont = 
+  ((Type t'),cont'')
+  where (t',cont',delcont) =transformType t cont []
+        cont'' = filter (\x -> x `notElem` delcont) cont' 
 
-transformType :: Type ->[Context] -> (Type,[Context])
-transformType (Literal name) cont= ((Literal name),cont)
-transformType (TFunc t1 t2) cont=
-  ((TFunc t1'  (Container "Eff" [Literal "r" ,t2'])), k++j)
-    where (t1',j) = transformType t1 []
-          (t2',k) = transformType t2 cont    
-transformType (Container name ((Literal s):ts)) cont= 
+transformType :: Type -> [Context] -> [Context]-> (Type, [Context], [Context])
+transformType (Literal name) cont delcont = ((Literal name),cont, delcont)
+transformType (TFunc t1 t2) cont delcont =
+  ((TFunc t1'  (effType t2')), cont, c1++c2)
+    where (t1',j,c1) = transformType t1 cont  []
+          (t2',k,c2) = transformType t2 cont delcont
+          effType t = case t of
+                    Container _ _ -> t
+                    otherwise -> (Container "Eff" [Literal "r", t])
+transformType (Container name ((Literal s):ts)) cont delcont= 
     case (filter ((==) (Constraint (Class "Monad") name)) cont) of
-      []-> ((Container "Eff" ((Literal "r"):ts)),cont') --for an appropriate monad
-      otherwise -> ((Container "Eff" (Literal "r" :Literal s:ts)), cont'') --for an arbitrary monad m 
+      []-> ((Container "Eff" ((Literal "r"):ts)),cont', delcont) --for an appropriate monad
+      otherwise -> ((Container "Eff" (Literal "r" :Literal s:ts)), cont, cont'') --for an arbitrary monad m 
   where 
     cont'= (Constraint (Member name s) "r"):cont
-    cont'' = delete (Constraint  (Class "Monad") name) cont
+    cont'' =  if (elem (Constraint  (Class "Monad") name) delcont) then delcont else ((Constraint  (Class "Monad") name):delcont)
 
 {--transformType (Container name t) cont= 
   ((Container name (t:ts)),cont')
   where 
     cont' = (Constraint (SetMember Lift (Lift IO) t)):cont     
 --} --for IO and m
-transformType (TList t) i= ((TList t) ,i)
+transformType (TList t) cont delcont= ((TList t) , cont , delcont)
 
 
 -------------------------------------------------------------------------------------------------------------

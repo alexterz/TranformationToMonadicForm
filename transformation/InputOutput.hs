@@ -2,7 +2,7 @@
 {-# LANGUAGE MonoLocalBinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-import Control.Monad.State.Lazy
+import Control.Monad.State.Strict
 
 foldrK :: ((a-> (b-> b))-> (b-> ([a]-> b)))
 foldrK f z [] = z;foldrK f z (x : xs) = ((f x) (((foldrK f) z) xs));
@@ -18,8 +18,8 @@ intermediate :: ([Integer]-> [Integer])
 intermediate = (maplet alex);
 inter :: ((Integer-> (Integer-> Integer))-> (Integer-> ([Integer]-> Integer)))
 inter f = (foldrK f);
-one ::  (Num s) =>(State s Integer )
-one = (return 0);
+one ::  (Monad m) =>((m Integer )-> (m Integer ))
+one x = x;
 maplet :: forall a b .((a-> b)-> ([a]-> [b]))
 maplet f [] = [];maplet f (x : xs) = (let h :: b;h = (f x);t :: [b];t = ((maplet f) xs);z :: Integer;z = (alex 1);in (h:t));
 result :: [Integer]

@@ -110,7 +110,7 @@ imports =
 
 outimports::String
 outimports =
-  "import Control.Monad.State.Lazy\n\n"   
+  "import Control.Monad.State.Strict\n\n"   
 
 
 langExtensions:: String

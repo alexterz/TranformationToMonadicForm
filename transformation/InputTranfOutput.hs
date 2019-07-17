@@ -21,8 +21,8 @@ intermediate :: (Eff r ([Integer]-> (Eff r [Integer] )) )
 intermediate = (let intermediate' = (alex>>=( \ x0  -> (maplet>>=( \ g0  -> (g0 x0)))));;in intermediate');
 inter :: (Eff r ((Integer-> (Eff r (Integer-> (Eff r Integer )) ))-> (Eff r (Integer-> (Eff r ([Integer]-> (Eff r Integer )) )) )) )
 inter = (return (let inter' f = ((return f)>>=( \ x0  -> (foldrK>>=( \ g0  -> (g0 x0)))));;in inter'));
-one ::  (Member (State s) r, Num s) =>(Eff r Integer )
-one = (let one' = ((return 0)>>=( \ x0  -> ((return return)>>=( \ g0  -> (g0 x0)))));;in one');
+one :: (Eff r ((Eff r Integer )-> (Eff r Integer )) )
+one = (return (let one' x = x;;in one'));
 maplet :: forall r a b .(Eff r ((a-> (Eff r b ))-> (Eff r ([a]-> (Eff r [b] )) )) )
 maplet = (return (let maplet' f [] = (sequence []);maplet' f (x : xs) = (let h :: (Eff r b );h = (let h' = ((return x)>>=( \ x0  -> ((return f)>>=( \ g0  -> (g0 x0)))));;in h');t :: (Eff r [b] );t = (let t' = ((return xs)>>=( \ x0  -> (((return f)>>=( \ x1  -> (maplet>>=( \ g1  -> (g1 x1)))))>>=( \ g0  -> (g0 x0)))));;in t');z :: (Eff r Integer );z = (let z' = ((return 1)>>=( \ x0  -> (alex>>=( \ g0  -> (g0 x0)))));;in z');in (t>>=( \ x2  -> ((h>>=( \ x3  -> (cons>>=( \ g3  -> (g3 x3)))))>>=( \ g2  -> (g2 x2))))));;in (mConvert1 maplet')));
 result :: (Eff r [Integer] )
