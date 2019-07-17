@@ -10,10 +10,16 @@ plus2 :: (Integer-> (Integer-> Integer))
 plus2 x y = (x+y);
 alex :: (Integer-> Integer)
 alex x = (x-1);
+intermediate :: ([Integer]-> [Integer])
+intermediate = (maplet alex);
+inter :: ((Integer-> (Integer-> Integer))-> (Integer-> ([Integer]-> Integer)))
+inter f = (foldrK f);
+one :: Integer
+one = 0;
 maplet :: forall a b .((a-> b)-> ([a]-> [b]))
-maplet f [] = [];maplet f (x : xs) = (let h :: b;h = (f x);t :: [b];t = ((maplet f) xs);in (h:t));
+maplet f [] = [];maplet f (x : xs) = (let h :: b;h = (f x);t :: [b];t = ((maplet f) xs);z :: Integer;z = (alex 1);in (h:t));
 result :: [Integer]
-result = ((maplet alex) (2:(3:[1,2])));
+result = (intermediate (2:(3:[1,2])));
 
 main::IO ()
 main= putStrLn $show $result

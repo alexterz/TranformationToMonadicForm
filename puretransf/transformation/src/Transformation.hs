@@ -95,15 +95,16 @@ toMonad (Monadic e) _= Monadic e
 --}
 
 transformDclrs:: Dclrs-> Integer ->Type ->TypedApats -> Dclrs
-transformDclrs ((Assign name apats expr):ds) times t tApats= 
+transformDclrs ((Assign name apats expr):ds) times t tApats= -- to times den xreiazetai pia, vriskw periptwsi mConvert apo length apats
   [(Assign name [] expr' )]
   where
-    expr' = case times of 
-        0 -> Let [Dclrs (transformlocalDclrs ((Assign name apats expr):ds) t tApats)] (Apat(Var (name++"'")))
-        1 -> returnExpr (Let [Dclrs (transformlocalDclrs ((Assign name apats expr):ds) t tApats)] (Apat(Var (name++"'")))) 
-        x-> returnExpr (Let [Dclrs (transformlocalDclrs ((Assign name apats expr):ds) t tApats)] (App (Apat (Var ("mConvert" ++ (show (x-1))))) (Apat(Var (name++"'")))))
- 
-
+    lenApats = toInteger(length apats)
+    expr' = 
+        case lenApats of
+          0 -> Let [Dclrs (transformlocalDclrs ((Assign name apats expr):ds) t tApats)] (Apat(Var (name++"'")))
+          1 -> returnExpr (Let [Dclrs (transformlocalDclrs ((Assign name apats expr):ds) t tApats)] (Apat(Var (name++"'")))) 
+          otherwise -> returnExpr (Let [Dclrs (transformlocalDclrs ((Assign name apats expr):ds) t tApats)] (App (Apat (Var ("mConvert" ++ (show (lenApats-1))))) (Apat(Var (name++"'")))))
+      
 transformlocalDclrs:: Dclrs -> Type-> TypedApats-> Dclrs
 transformlocalDclrs [] _ tApats= []
 transformlocalDclrs (d:ds) t tApats= (transformDclr d t tApats):(transformlocalDclrs ds t tApats)
@@ -145,7 +146,12 @@ insertApats (l:ls) t tApats =
 transformExpr:: Expr-> TypedApats -> Integer-> Expr
 transformExpr e@(Apat apats) tApats  i= --  οκ 
   toMonad e tApats i 
-transformExpr (List es) tApats i=  App (Apat(Var "sequence")) (List (transformExprs es tApats i))---ok
+transformExpr (List es) tApats i= 
+  App (Apat(Var "sequence")) (List (transformExprs es tApats i))---ok
+transformExpr (Cons e1 e2) tApats  i= --οκ
+  transformExpr (App (App (Apat(Var "cons")) e1) e2) tApats (i+1)
+transformExpr (Let ds expr) tApats i =  
+  Let (runTransformation ds tApats) (transformExpr expr tApats (i+1)) 
 transformExpr (App e1 e2) tApats i = --ok 
   Bind e2' (Lam [Var ("x"++show i)]                                    -- Na dw ti ginetai an to e2 otan einai monad kai oxi func
   (Bind e1' (Lam [Var ("g"++ show i)]
@@ -153,8 +159,6 @@ transformExpr (App e1 e2) tApats i = --ok
   where
     e1' = transformExpr e1 tApats (i+1)  
     e2' = transformExpr e2 tApats (i+1) 
-transformExpr (Cons e1 e2) tApats  i= --οκ
-  transformExpr (App (App (Apat(Var "cons")) e1) e2) tApats (i+1)
 transformExpr (Op binop e1 e2) tApats i = --ok
   transformExpr (App (App (Apat(Var x)) e1) e2) tApats (i+1)
   where
@@ -162,8 +166,8 @@ transformExpr (Op binop e1 e2) tApats i = --ok
          Add -> "plus"
          Sub -> "sub"
          Mul -> "multiple"
-transformExpr (Let ds expr) tApats i =  
-  Let (runTransformation ds tApats) (transformExpr expr tApats (i+1))        
+transformExpr (Lam apats expr) tApats i = undefined 
+transformExpr (Monadic e) _ _= Monadic e      
 
 
 transformExprs:: [Expr] -> TypedApats -> Integer -> [Expr]
