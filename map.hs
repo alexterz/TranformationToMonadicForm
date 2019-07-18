@@ -14,6 +14,8 @@ import ForTesting
 
 
 
+one :: Monad m => m Integer
+one = (let one' = ((return return)>>=( \ f0  -> (((return 1)>>=( \ x1  -> ((return return)>>=( \ g1  -> (g1 x1)))))>>=( \ y0  -> (y0>>=f0)))));;in one');
 
 
 maplet:: (a-> b) -> [a]->  [b]

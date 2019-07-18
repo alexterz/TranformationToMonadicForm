@@ -29,7 +29,7 @@ transformAllDclr (WithSign typesign@(ContSignature name cont t) d) tApats=
             (ForAll names t1)-> t1
             (Type t1) -> t1  
 
-
+------------------------------------------------------------------------------------------------------------------------------------------------------
 transformTypeSign :: TypeSignature -> TypeSignature
 transformTypeSign (ContSignature name cont t) =
   (ContSignature name cont' t'')
@@ -61,19 +61,20 @@ transformType (TFunc t1 t2) cont delcont =
           effType t = case t of
                     Container _ _ -> t
                     otherwise -> (Container "Eff" [Literal "r", t])
-transformType (Container name ((Literal s):ts)) cont delcont= 
-    case (filter ((==) (Constraint (Class "Monad") name)) cont) of
-      []-> ((Container "Eff" ((Literal "r"):ts)),cont', delcont) --for an appropriate monad
-      otherwise -> ((Container "Eff" (Literal "r" :Literal s:ts)), cont, cont'') --for an arbitrary monad m 
-  where 
-    cont'= (Constraint (Member name s) "r"):cont
-    cont'' =  if (elem (Constraint  (Class "Monad") name) delcont) then delcont else ((Constraint  (Class "Monad") name):delcont)
-
-{--transformType (Container name t) cont= 
-  ((Container name (t:ts)),cont')
-  where 
-    cont' = (Constraint (SetMember Lift (Lift IO) t)):cont     
---} --for IO and m
+{--transformType (Container "IO" [t]) cont delcont=
+    ((Container "Eff" ((Literal "r"):[t'])), cont', delcont)  --for a specific monad like State s 
+       where cont'= (Constraint (SetMember Lift (Lift IO) t)):cont  
+             (t',c,c1) = transformType t cont' delcont --}
+transformType (Container name types) cont delcont= 
+  case types of 
+    [t] -> ((Container "Eff" (Literal "r" :[t'])), c, c1) --for an arbitrary monad m type   
+           where
+              (t',c,c1) = transformType t cont delcont'
+              delcont' =  if (elem (Constraint  (Class "Monad") name) delcont) then delcont else ((Constraint  (Class "Monad") name):delcont)
+    ((Literal s):[ts]) -> 
+       ((Container "Eff" ((Literal "r"):[ts'])), cont', delcont)  --for a specific monad like State s 
+       where cont'= (Constraint (Member name s) "r"):cont  
+             (ts',c,c1) = transformType ts cont' delcont         
 transformType (TList t) cont delcont= ((TList t) , cont , delcont)
 
 
@@ -98,7 +99,7 @@ transformlocalDclrs (d:ds) t tApats= (transformDclr d t tApats):(transformlocalD
 transformDclr:: Dclr -> Type -> TypedApats -> Dclr
 transformDclr (Assign name apats expr) t tApats= 
   Assign (name++"'") apats expr'
-    where expr' = (transformExpr expr typedApats 0) --(Lam [Var "x"] (App (Apat (Var "return")) (Apat (Var "x"))))
+    where expr' = (transformExprMonad expr typedApats 0) --(Lam [Var "x"] (App (Apat (Var "return")) (Apat (Var "x"))))
           typedApats = transformApats apats t tApats
 
 transformApats:: [Apats]-> Type-> TypedApats -> TypedApats
@@ -127,7 +128,13 @@ insertApats (l:ls) t tApats =
   where 
     tApats' = insertApats ls t tApats
 ------------------------------------------------------------------------------------------------------------------
-
+transformExprMonad::  Expr-> TypedApats -> Integer-> Expr
+transformExprMonad e@(Apat (Var name)) tApats  i= --  οκ 
+  case (Map.lookup (Var name) tApats) of
+    Just (Container _ _ ) -> e
+    otherwise -> toMonad e tApats i
+transformExprMonad e tApats i = 
+  transformExpr e tApats i    
 
 
 transformExpr:: Expr-> TypedApats -> Integer-> Expr
@@ -151,13 +158,16 @@ transformExpr (Op binop e1 e2) tApats i = --ok
          Sub -> "sub"
          Mul -> "multiple"
 transformExpr (Lam apats expr) tApats i = undefined 
---transformExpr (Bind e1 e2) tApats i = 
+transformExpr (Bind e1 e2) tApats i = 
+  Bind (transformExpr e2 tApats (i+1)) (Lam [Var ("f"++show i)]                                    -- Na dw ti ginetai an to e2 otan einai monad kai oxi func
+  (Bind (transformExpr e1 tApats (i+1)) (Lam [Var ("y"++ show i)]
+  (Bind (Apat (Var ("y"++ show i))) (Apat(Var ("f"++show i))))))) 
 transformExpr (Monadic e) _ _= Monadic e      
 
 
 transformExprs:: [Expr] -> TypedApats -> Integer -> [Expr]
 transformExprs [] tApats i = []
-transformExprs (e:es) tApats i = (transformExpr e tApats i):(transformExprs es tApats i)
+transformExprs (e:es) tApats i = (transformExprMonad e tApats i):(transformExprs es tApats i)
 
 toMonad:: Expr -> TypedApats ->Integer -> Expr
 toMonad e@(Apat (Lit _)) tApats _ = 
@@ -168,6 +178,7 @@ toMonad e@(Apat (Var name)) tApats _ =
     Just (Literal n) -> returnExpr e
     Just (TList t) -> returnExpr e
     Just (TFunc t1 t2)-> returnExpr e --this case is for arguments that are functions (a->Eff r (...))
+    Just (Container _ _ ) -> returnExpr e
     otherwise -> e
 toMonad e@(Apat (ListArgs apats)) tApats _ = 
   undefined

@@ -17,14 +17,20 @@ plus2 x y = x+y\n
 alex::Integer->Integer;
 alex x = x-1\n
 
+alex':: State Integer Integer -> Integer;
+alex' x = 1 \n
+
+sub1::Integer->State Integer Integer;
+sub1 x = return (x-1)\n
+
 intermediate:: [Integer]->[Integer];
 intermediate = maplet alex\n
 
 inter:: (Integer->Integer->Integer)-> (Integer->[Integer]->Integer);
 inter f =foldrK f\n
 
-one::Monad m=> m Integer -> m Integer;
-one x = x\n
+one::Integer ;
+one = alex' (sub1 1) \n
 
 maplet:: forall a b .((a-> b) -> [a]->  [b]);
 maplet f [] = [];

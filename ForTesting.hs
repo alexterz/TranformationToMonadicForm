@@ -30,11 +30,6 @@ totalAdd x = do
            incr --incr2: increases the s2
            let sum1 = ask `add` return x
            sum1 `add` get 
-plus::(Num a)=> Eff r (a->Eff r (a-> Eff r a))
-plus = let plus' x y = return (x+y) in return (mConvert1 plus')
-
-addState::(Member (State Int) r) => Int -> Eff r (Int -> Eff r Int)
-addState x = plus2
 
 --giving  x, y , returns the (x+y+env1+env2+s1+1+s2+1) sum, and increases both states (s1,s2)
 combTotalAdd:: (Member (State Int) r, Member (Reader Int) r) => Int -> Eff r (Int -> Eff r Int)
@@ -59,5 +54,4 @@ addEnvState x = do
                   let 
                       f y = addEnv y `add` return h
                   return f
-
 

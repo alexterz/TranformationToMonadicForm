@@ -14,12 +14,16 @@ plus2 :: (Integer-> (Integer-> Integer))
 plus2 x y = (x+y);
 alex :: (Integer-> Integer)
 alex x = (x-1);
+alex' :: ((State Integer Integer )-> Integer)
+alex' x = 1;
+sub1 :: (Integer-> (State Integer Integer ))
+sub1 x = (return (x-1));
 intermediate :: ([Integer]-> [Integer])
 intermediate = (maplet alex);
 inter :: ((Integer-> (Integer-> Integer))-> (Integer-> ([Integer]-> Integer)))
 inter f = (foldrK f);
-one ::  (Monad m) =>((m Integer )-> (m Integer ))
-one x = x;
+one :: Integer
+one = (alex' (sub1 1));
 maplet :: forall a b .((a-> b)-> ([a]-> [b]))
 maplet f [] = [];maplet f (x : xs) = (let h :: b;h = (f x);t :: [b];t = ((maplet f) xs);z :: Integer;z = (alex 1);in (h:t));
 result :: [Integer]
