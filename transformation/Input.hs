@@ -45,12 +45,12 @@ maplet f (x:xs) =
     h:t \n
 
 
-mid::Monad m =>m Integer;
-mid = example plusMonads (return 1) (return 2)  \n
+mid::(Integer,Integer);
+mid = runState (example plusMonads 1 (return 2)) 7  \n
 
 
-example::Monad m => (m Integer -> m Integer -> m Integer)-> m Integer -> m Integer -> m Integer;
-example f a b = plusMonads a  b\n
+example::Monad m => (m Integer -> m Integer -> m Integer)->  Integer -> m Integer -> m Integer;
+example f a b = plusMonads (return a)  b\n
 
 plusMonads::Monad m => m Integer -> m Integer -> m Integer;
 plusMonads x y = x>>=(\z->(y>>=\v->(return(v+z)))) \n
@@ -59,20 +59,26 @@ plusMonads x y = x>>=(\z->(y>>=\v->(return(v+z)))) \n
 addState::State Integer Integer -> State Integer Integer ;
 addState x = x>>= f \n 
 
-
 f:: Integer -> State Integer Integer ; 
 f p = get >>= (g p) \n
 
 g:: Integer -> Integer -> State Integer Integer ;
 g a s = return (a+s) \n
 
+addState':: State Integer Integer -> State Integer Integer ;
+addState' x = (x>>=(\q-> get>>= (\y-> (put (y+1))>>=(\z-> return (y+q))))) \n 
+
+
 createStMonad:: Integer -> (Integer , Integer) ;
 createStMonad s = (1 , s) \n
 
 sum1:: State Integer Integer;
-sum1 = (addState (return 1))\n    
+sum1 = (addState' (return 1))\n    
+
+tryBind:: Integer ->Integer -> State Integer Integer;
+tryBind x y = return (x+y) >>= \z -> return z\n
 
 result:: (Integer, Integer);
-result = runState sum1 5
+result = runState (addState' (tryBind 4 5)) 2
 
 

@@ -167,9 +167,7 @@ transformExpr ((Bind e1 e2),t) tApats tFuncs i =
         (expr',t') = transformExpr (expr,t) tApats' tFuncs (i+1) 
     otherwise -> 
       ((Bind e2' (Lam [Var ("f"++show i)] 
-      (Bind e1' (Apat(Var ("f"++show i)))))),t2)                                   -- Na dw ti ginetai an to e2 otan einai monad kai oxi func
-      --(Bind e1' (Lam [Var ("y"++ show i)]
-      --(Bind (Apat (Var ("y"++ show i))) (Apat(Var ("f"++show i))))))),t2) 
+      (Bind e1' (Apat(Var ("f"++show i)))))),t2)                                 
   where
     (e2',TFunc t1 t2) = transformExpr (e2,t) tApats tFuncs (i+1)
     (e1',_) = transformExpr (e1,t) tApats tFuncs (i+1)

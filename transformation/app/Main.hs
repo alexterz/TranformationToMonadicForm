@@ -58,11 +58,11 @@ main = runInputT defaultSettings loop
                  (\_->[sh| rm $out1 $out2 $exec1 $exec2|])) >> loop
                  where
                     file1 = (inputFile ++"Output.hs")
-                    file2 = (inputFile ++ "TranfOutput.hs")
+                    file2 = (inputFile ++ "TransfOutput.hs")
                     out1 = (inputFile ++"Output.o")
-                    out2 = (inputFile ++ "TranfOutput.o") 
+                    out2 = (inputFile ++ "TransfOutput.o") 
                     exec1 = (inputFile ++"Output")
-                    exec2 = (inputFile ++ "TranfOutput")     
+                    exec2 = (inputFile ++ "TransfOutput")     
         --       ((liftIO  ((readInput inputFile)>>= process)) >>= outputStrLn)>> loop 
       Just input -> (liftIO $ process input) >> loop
 
@@ -70,7 +70,7 @@ main = runInputT defaultSettings loop
 writeOutput :: FilePath -> String -> String ->IO()
 writeOutput i1 str1 str2 = do 
   writeFile (i1++"Output.hs") (langExtensions++outimports++ str1++forMain)
-  writeFile (i1++ "TranfOutput.hs") (langExtensions++"import "++ i1 ++ "MConvert \n" ++ imports ++ str2++forTranfMain)
+  writeFile (i1++ "TransfOutput.hs") (langExtensions++"import "++ i1 ++ "MConvert \n" ++ imports ++ str2++forTransfMain)
   writeFile (i1++"MConvert.hs") ("module "++ i1 ++ "MConvert" ++mConvert)
 
 readInput:: FilePath ->IO String
@@ -93,8 +93,8 @@ forMain:: String
 forMain = 
  "\nmain::IO ()\nmain= putStrLn $show $result"
 
-forTranfMain:: String
-forTranfMain = "\nmain::IO ()\nmain= putStrLn $show $run $result"                     
+forTransfMain:: String
+forTransfMain = "\nmain::IO ()\nmain= putStrLn $show $run $result"                     
 
 binop:: String 
 binop = 

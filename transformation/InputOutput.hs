@@ -25,10 +25,10 @@ alex' :: (Integer-> ((State Integer Integer )-> Integer))
 alex' x y = (1+x);
 maplet :: forall a b .((a-> b)-> ([a]-> [b]))
 maplet f [] = [];maplet f (x : xs) = (let h :: b;h = (f x);t :: [b];t = ((maplet f) xs);z :: Integer;z = (alex 1);in (h:t));
-mid ::  (Monad m) =>(m Integer )
-mid = (((example plusMonads) (return 1)) (return 2));
-example ::  (Monad m) =>(((m Integer )-> ((m Integer )-> (m Integer )))-> ((m Integer )-> ((m Integer )-> (m Integer ))))
-example f a b = ((plusMonads a) b);
+mid :: (Integer,Integer)
+mid = ((runState (((example plusMonads) 1) (return 2))) 7);
+example ::  (Monad m) =>(((m Integer )-> ((m Integer )-> (m Integer )))-> (Integer-> ((m Integer )-> (m Integer ))))
+example f a b = ((plusMonads (return a)) b);
 plusMonads ::  (Monad m) =>((m Integer )-> ((m Integer )-> (m Integer )))
 plusMonads x y = (x>>=( \ z  -> (y>>=( \ v  -> (return (v+z))))));
 addState :: ((State Integer Integer )-> (State Integer Integer ))
@@ -37,12 +37,16 @@ f :: (Integer-> (State Integer Integer ))
 f p = (get>>=(g p));
 g :: (Integer-> (Integer-> (State Integer Integer )))
 g a s = (return (a+s));
+addState' :: ((State Integer Integer )-> (State Integer Integer ))
+addState' x = (x>>=( \ q  -> (get>>=( \ y  -> ((put (y+1))>>=( \ z  -> (return (y+q))))))));
 createStMonad :: (Integer-> (Integer,Integer))
 createStMonad s = (1,s);
 sum1 :: (State Integer Integer )
-sum1 = (addState (return 1));
+sum1 = (addState' (return 1));
+tryBind :: (Integer-> (Integer-> (State Integer Integer )))
+tryBind x y = ((return (x+y))>>=( \ z  -> (return z)));
 result :: (Integer,Integer)
-result = ((runState sum1) 5);
+result = ((runState (addState' ((tryBind 4) 5))) 2);
 
 main::IO ()
 main= putStrLn $show $result

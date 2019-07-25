@@ -29,10 +29,10 @@ alex' ::  (Member (State Integer) r) =>(Eff r (Integer-> (Eff r ((Eff r Integer 
 alex' = (return (let alex'' x y = ((return x)>>=( \ x1  -> (((return 1)>>=( \ x2  -> (plus>>=( \ g2  -> (g2 x2)))))>>=( \ g1  -> (g1 x1)))));;in (mConvert1 alex'')));
 maplet :: forall r a b .(Eff r ((a-> (Eff r b ))-> (Eff r ([a]-> (Eff r [b] )) )) )
 maplet = (return (let maplet' f [] = (sequence []);maplet' f (x : xs) = (let h :: (Eff r b );h = (let h' = ((return x)>>=( \ x0  -> ((return f)>>=( \ g0  -> (g0 x0)))));;in h');t :: (Eff r [b] );t = (let t' = ((return xs)>>=( \ x0  -> (((return f)>>=( \ x1  -> (maplet>>=( \ g1  -> (g1 x1)))))>>=( \ g0  -> (g0 x0)))));;in t');z :: (Eff r Integer );z = (let z' = ((return 1)>>=( \ x0  -> (alex>>=( \ g0  -> (g0 x0)))));;in z');in (t>>=( \ x2  -> ((h>>=( \ x3  -> (cons>>=( \ g3  -> (g3 x3)))))>>=( \ g2  -> (g2 x2))))));;in (mConvert1 maplet')));
-mid :: (Eff r Integer )
-mid = (let mid' = (((plusMonads>>=( \ x2  -> (example>>=( \ g2  -> (g2 x2)))))>>=( \ g1  -> (g1 ((return 1)>>=( \ x2  -> ((return return)>>=( \ g2  -> (g2 x2))))))))>>=( \ g0  -> (g0 ((return 2)>>=( \ x1  -> ((return return)>>=( \ g1  -> (g1 x1))))))));;in mid');
-example :: (Eff r (((Eff r Integer )-> (Eff r ((Eff r Integer )-> (Eff r Integer )) ))-> (Eff r ((Eff r Integer )-> (Eff r ((Eff r Integer )-> (Eff r Integer )) )) )) )
-example = (return (let example' f a b = ((plusMonads>>=( \ g1  -> (g1 a)))>>=( \ g0  -> (g0 b)));;in (mConvert2 example')));
+mid :: (Eff r (Integer,Integer) )
+mid = (let mid' = ((return 7)>>=( \ s0  -> ((runState s0) (((return 1)>>=( \ x2  -> ((plusMonads>>=( \ x3  -> (example>>=( \ g3  -> (g3 x3)))))>>=( \ g2  -> (g2 x2)))))>>=( \ g1  -> (g1 ((return 2)>>=( \ x2  -> ((return return)>>=( \ g2  -> (g2 x2)))))))))));;in mid');
+example :: (Eff r (((Eff r Integer )-> (Eff r ((Eff r Integer )-> (Eff r Integer )) ))-> (Eff r (Integer-> (Eff r ((Eff r Integer )-> (Eff r Integer )) )) )) )
+example = (return (let example' f a b = ((plusMonads>>=( \ g1  -> (g1 ((return a)>>=( \ x2  -> ((return return)>>=( \ g2  -> (g2 x2))))))))>>=( \ g0  -> (g0 b)));;in (mConvert2 example')));
 plusMonads :: (Eff r ((Eff r Integer )-> (Eff r ((Eff r Integer )-> (Eff r Integer )) )) )
 plusMonads = (return (let plusMonads' x y = (x>>=( \ z  -> (y>>=( \ v  -> (((return z)>>=( \ x4  -> (((return v)>>=( \ x5  -> (plus>>=( \ g5  -> (g5 x5)))))>>=( \ g4  -> (g4 x4)))))>>=( \ x2  -> ((return return)>>=( \ g2  -> (g2 x2)))))))));;in (mConvert1 plusMonads')));
 addState ::  (Member (State Integer) r) =>(Eff r ((Eff r Integer )-> (Eff r Integer )) )
@@ -41,12 +41,16 @@ f ::  (Member (State Integer) r) =>(Eff r (Integer-> (Eff r Integer )) )
 f = (return (let f' p = (((return p)>>=( \ x1  -> (g>>=( \ g1  -> (g1 x1)))))>>=( \ f0  -> (get>>=f0)));;in f'));
 g ::  (Member (State Integer) r) =>(Eff r (Integer-> (Eff r (Integer-> (Eff r Integer )) )) )
 g = (return (let g' a s = (((return s)>>=( \ x2  -> (((return a)>>=( \ x3  -> (plus>>=( \ g3  -> (g3 x3)))))>>=( \ g2  -> (g2 x2)))))>>=( \ x0  -> ((return return)>>=( \ g0  -> (g0 x0)))));;in (mConvert1 g')));
+addState' ::  (Member (State Integer) r) =>(Eff r ((Eff r Integer )-> (Eff r Integer )) )
+addState' = (return (let addState'' x = (x>>=( \ q  -> (get>>=( \ y  -> ((((return 1)>>=( \ x5  -> (((return y)>>=( \ x6  -> (plus>>=( \ g6  -> (g6 x6)))))>>=( \ g5  -> (g5 x5)))))>>=( \ s3  -> (put s3)))>>=( \ z  -> (((return q)>>=( \ x5  -> (((return y)>>=( \ x6  -> (plus>>=( \ g6  -> (g6 x6)))))>>=( \ g5  -> (g5 x5)))))>>=( \ x3  -> ((return return)>>=( \ g3  -> (g3 x3)))))))))));;in addState''));
 createStMonad :: (Eff r (Integer-> (Eff r (Integer,Integer) )) )
 createStMonad = (return (let createStMonad' s = (return (1,s));;in createStMonad'));
 sum1 ::  (Member (State Integer) r) =>(Eff r Integer )
-sum1 = (let sum1' = (addState>>=( \ g0  -> (g0 ((return 1)>>=( \ x1  -> ((return return)>>=( \ g1  -> (g1 x1))))))));;in sum1');
+sum1 = (let sum1' = (addState'>>=( \ g0  -> (g0 ((return 1)>>=( \ x1  -> ((return return)>>=( \ g1  -> (g1 x1))))))));;in sum1');
+tryBind ::  (Member (State Integer) r) =>(Eff r (Integer-> (Eff r (Integer-> (Eff r Integer )) )) )
+tryBind = (return (let tryBind' x y = ((((return y)>>=( \ x3  -> (((return x)>>=( \ x4  -> (plus>>=( \ g4  -> (g4 x4)))))>>=( \ g3  -> (g3 x3)))))>>=( \ x1  -> ((return return)>>=( \ g1  -> (g1 x1)))))>>=( \ z  -> ((return z)>>=( \ x1  -> ((return return)>>=( \ g1  -> (g1 x1)))))));;in (mConvert1 tryBind')));
 result :: (Eff r (Integer,Integer) )
-result = (let result' = ((return 5)>>=( \ s0  -> ((runState s0) sum1)));;in result');
+result = (let result' = ((return 2)>>=( \ s0  -> ((runState s0) (addState'>>=( \ g1  -> (g1 ((return 5)>>=( \ x2  -> (((return 4)>>=( \ x3  -> (tryBind>>=( \ g3  -> (g3 x3)))))>>=( \ g2  -> (g2 x2)))))))))));;in result');
 
 main::IO ()
 main= putStrLn $show $run $result
