@@ -12,6 +12,12 @@ type AllDclrs =[AllDclr]
 
 type Import = String
 
+type TypedApats = Map.Map Apats Type
+
+type TypedFuncs = Map.Map Name Type
+
+type Types = (TypedFuncs,TypedApats)
+
 data AllDclr
   = Dclrs Dclrs   
   | WithSign TypeSignature [Dclr]
@@ -35,6 +41,7 @@ data Type
   | TFunc Type Type
   | Container Name [Type]
   | TList Type
+  | TTuple [Type]
   | Void    
   deriving (Eq,Show)
 
@@ -55,6 +62,7 @@ data Expr
   | Op Binop Expr Expr
   | Cons Expr Expr 
   | List [Expr]
+  | Tuple [Expr]
   | Bind Expr Expr 
   | Monadic Expr
   deriving (Eq,Show)
@@ -67,7 +75,6 @@ data Apats
     | ListArgs [Apats]
     deriving (Eq,Show,Ord)
 
-type TypedApats =Map.Map Apats Type
 
 data Lit
   = LInt Int

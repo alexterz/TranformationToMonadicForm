@@ -13,9 +13,17 @@ import MConvert
 import ForTesting
 
 
+alex' :: (Eff r ((Eff r Integer )-> (Eff r Integer )) )
+alex' = (return (let alex'' x = (return 1);;in alex''));
+sub1 :: (Eff r (Integer-> (Eff r Integer )) )
+sub1 = (return (let sub1' x = (((return 1)>>=( \ x2  -> (((return x)>>=( \ x3  -> (sub>>=( \ g3  -> (g3 x3)))))>>=( \ g2  -> (g2 x2)))))>>=( \ x0  -> ((return return)>>=( \ g0  -> (g0 x0)))));;in sub1'));
 
-one :: Monad m => m Integer
-one = (let one' = ((return return)>>=( \ f0  -> (((return 1)>>=( \ x1  -> ((return return)>>=( \ g1  -> (g1 x1)))))>>=( \ y0  -> (y0>>=f0)))));;in one');
+sub::(Num a)=> Eff r (a->Eff r (a-> Eff r a))
+sub = let sub' x y = return (x-y) in return (mConvert1 sub')
+
+one :: Eff r Integer
+--one :: (Eff r Integer )
+one = (let one' = (((return 1)>>=( \ x1  -> (sub1>>=( \ g1  -> (return(g1 x1))))))>>=( \ x0  -> (alex'>>=( \ g0  -> (g0 x0)))));;in one');
 
 
 maplet:: (a-> b) -> [a]->  [b]

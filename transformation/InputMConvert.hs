@@ -3,6 +3,7 @@ module InputMConvert where
 import Control.Eff
 import Control.Monad
 import Control.Eff.State.Strict
+import Data.Tuple.Sequence
 
 mConvert0 :: a -> Eff r a 
 mConvert0 =return 

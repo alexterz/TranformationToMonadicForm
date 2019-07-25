@@ -17,9 +17,6 @@ plus2 x y = x+y\n
 alex::Integer->Integer;
 alex x = x-1\n
 
-alex':: State Integer Integer -> Integer;
-alex' x = 1 \n
-
 sub1::Integer->State Integer Integer;
 sub1 x = return (x-1)\n
 
@@ -29,8 +26,10 @@ intermediate = maplet alex\n
 inter:: (Integer->Integer->Integer)-> (Integer->[Integer]->Integer);
 inter f =foldrK f\n
 
-one::Integer ;
-one = alex' (sub1 1) \n
+
+
+alex':: Integer -> State Integer Integer -> Integer;
+alex' x y = 1+x \n
 
 maplet:: forall a b .((a-> b) -> [a]->  [b]);
 maplet f [] = [];
@@ -45,8 +44,23 @@ maplet f (x:xs) =
   in
     h:t \n
 
-result:: [Integer];
-result = intermediate (2:3:[1,2]) 
 
+addState::State Integer Integer -> State Integer Integer ;
+addState x = x>>= f \n 
+
+f:: Integer -> State Integer Integer ; 
+f p = get >>= (g p) \n
+
+g:: Integer -> Integer -> State Integer Integer ;
+g a s = return (a+s) \n
+
+createStMonad:: Integer -> (Integer , Integer) ;
+createStMonad s = (1 , s) \n
+
+sum1:: State Integer Integer;
+sum1 = (addState (return 1))\n    
+
+result:: (Integer, Integer);
+result = runState sum1 5
 
 

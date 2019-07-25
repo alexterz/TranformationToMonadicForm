@@ -40,7 +40,14 @@ printType (TFunc t1 t2) = "(" ++ printType t1  ++"-> "  ++ printType t2 ++ ")"
 --printType (Container name []) = "(" ++ name ++" () )" 
 printType (Container name t) = "(" ++ name ++" " ++ printTypeList t ++")" 
 printType (TList t) = "["++ printType t ++"]"
+printType (TTuple ts) = "("++ printTuples ts ++")"
 printType (Void) = "()"
+
+
+printTuples:: [Type] -> String
+printTuples [] = ""
+printTuples [l] = printType l
+printTuples (l:ls) = printType l ++ "," ++ printTuples ls
  
 printTypeList :: [Type] -> String
 printTypeList [] = ""
@@ -105,6 +112,8 @@ printExpr (Apat apats) =
   printApat apats 
 printExpr (List exprs) = 
   "[" ++ printListExpr exprs ++"]"  
+printExpr (Tuple exprs) =
+   "(" ++ printListExpr exprs ++")"  
 printExpr (Cons e1 e2) =
      "(" ++ printExpr e1 ++ ":" ++ printExpr e2 ++")"
     -- Cons e es -> "(" ++ printExpr expr ++":" ++ printExpr (Cons e es) ++")"    

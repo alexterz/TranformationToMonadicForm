@@ -1,6 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MonoLocalBinds #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 
 import Control.Monad.State.Strict
 
@@ -14,20 +15,28 @@ plus2 :: (Integer-> (Integer-> Integer))
 plus2 x y = (x+y);
 alex :: (Integer-> Integer)
 alex x = (x-1);
-alex' :: ((State Integer Integer )-> Integer)
-alex' x = 1;
 sub1 :: (Integer-> (State Integer Integer ))
 sub1 x = (return (x-1));
 intermediate :: ([Integer]-> [Integer])
 intermediate = (maplet alex);
 inter :: ((Integer-> (Integer-> Integer))-> (Integer-> ([Integer]-> Integer)))
 inter f = (foldrK f);
-one :: Integer
-one = (alex' (sub1 1));
+alex' :: (Integer-> ((State Integer Integer )-> Integer))
+alex' x y = (1+x);
 maplet :: forall a b .((a-> b)-> ([a]-> [b]))
 maplet f [] = [];maplet f (x : xs) = (let h :: b;h = (f x);t :: [b];t = ((maplet f) xs);z :: Integer;z = (alex 1);in (h:t));
-result :: [Integer]
-result = (intermediate (2:(3:[1,2])));
+addState :: ((State Integer Integer )-> (State Integer Integer ))
+addState x = (x>>=f);
+f :: (Integer-> (State Integer Integer ))
+f p = (get>>=(g p));
+g :: (Integer-> (Integer-> (State Integer Integer )))
+g a s = (return (a+s));
+createStMonad :: (Integer-> (Integer,Integer))
+createStMonad s = (1,s);
+sum1 :: (State Integer Integer )
+sum1 = (addState (return 1));
+result :: (Integer,Integer)
+result = ((runState sum1) 5);
 
 main::IO ()
 main= putStrLn $show $result

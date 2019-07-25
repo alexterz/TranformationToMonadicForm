@@ -105,11 +105,17 @@ Fact : Fact Atom                   { App $1 $2 }
 
 
 Atom :'(' Expr ')'                 {  $2 } 
+     |'(' Tuple ')'                { Tuple $2 }
      | List                        { List $1} 
      | NUM                         { Apat (Lit (LInt $1)) }
      | VAR                         { Apat (Var $1) }
      | true                        { Apat (Lit (LBool True)) }
      | false                       { Apat (Lit (LBool False)) }
+
+
+Tuple: Expr ',' Tuple               { $1: $3 }
+     | Expr ',' Expr                { $1: [$3] }
+
 
 
 -- List for expressions
@@ -154,10 +160,14 @@ TypeList: SimpleType TypeList       { $1 : $2 }
         | SimpleType                { [$1] }
 
 SimpleType: '('Type')'              { $2 } 
+          | '('TTuple')'            { TTuple $2 } 
           | '['Type']'              { TList $2}
           | VAR                     { Literal $1 } 
           | '('{-empty-}')'         { Void }
 
+
+TTuple: Type ',' TTuple             { $1 : $3 } 
+      | Type ',' Type               { $1 : [$3] } -- edw 1 shift/reduce conflict
 
 
 ---------------------------------------------------------------------------
