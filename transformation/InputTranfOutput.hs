@@ -40,7 +40,7 @@ createStMonad = (return (let createStMonad' s = (return (1,s));;in createStMonad
 sum1 ::  (Member (State Integer) r) =>(Eff r Integer )
 sum1 = (let sum1' = (addState>>=( \ g0  -> (g0 ((return 1)>>=( \ x1  -> ((return return)>>=( \ g1  -> (g1 x1))))))));;in sum1');
 result :: (Eff r (Integer,Integer) )
-result = (let result' = ((runState 5) sum1);;in result');
+result = (let result' = (((return 2)>>=( \ x2  -> (((return 5)>>=( \ x3  -> (plus>>=( \ g3  -> (g3 x3)))))>>=( \ g2  -> (g2 x2)))))>>=( \ s0  -> ((runState s0) sum1)));;in result');
 
 main::IO ()
 main= putStrLn $show $run $result

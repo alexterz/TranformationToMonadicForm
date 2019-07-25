@@ -61,6 +61,6 @@ sum1:: State Integer Integer;
 sum1 = (addState (return 1))\n    
 
 result:: (Integer, Integer);
-result = runState sum1 5
+result = runState sum1 (5+2)
 
 

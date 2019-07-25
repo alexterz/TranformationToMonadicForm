@@ -158,9 +158,10 @@ transformExpr ((Cons e1 e2),t) tApats tFuncs i= --οκ
 transformExpr ((Let ds expr),t) tApats tFuncs i =  
   (Let (fst (runTransformation ds tFuncs tApats)) (fst (transformExpr (expr,t) tApats tFuncs (i+1))),t) 
 transformExpr ((App (App (Apat(Var "runState")) e2) e3),t) tApats tFuncs i = --ok
-  ((App(App (Apat(Var "runState")) e3) e2'),t) 
+  ((Bind e3' (Lam [Var ("s"++show i)] (App (App (Apat(Var "runState")) (Apat(Var ("s"++show i)))) e2'))),t) 
   where
-    (e2',_) = transformExpr (e2,t) tApats tFuncs (i+1) 
+    (e2',_) = transformExpr (e2,t) tApats tFuncs (i+1)
+    (e3',_) = transformExpr (e3,t) tApats tFuncs (i+1)
 transformExpr ((App e1 e2),t) tApats tFuncs i = --ok
   case t1 of
     (Container _ _) -> 
