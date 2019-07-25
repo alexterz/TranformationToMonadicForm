@@ -25,12 +25,12 @@ alex' :: (Integer-> ((State Integer Integer )-> Integer))
 alex' x y = (1+x);
 maplet :: forall a b .((a-> b)-> ([a]-> [b]))
 maplet f [] = [];maplet f (x : xs) = (let h :: b;h = (f x);t :: [b];t = ((maplet f) xs);z :: Integer;z = (alex 1);in (h:t));
-example ::  (Monad m) =>(((m Integer )-> ((m Integer )-> (m Integer )))-> ((m Integer )-> (Integer-> (m Integer ))))
-example f a b = ((f a) (return b));
+mid ::  (Monad m) =>(m Integer )
+mid = (((example plusMonads) (return 1)) (return 2));
+example ::  (Monad m) =>(((m Integer )-> ((m Integer )-> (m Integer )))-> ((m Integer )-> ((m Integer )-> (m Integer ))))
+example f a b = ((plusMonads a) b);
 plusMonads ::  (Monad m) =>((m Integer )-> ((m Integer )-> (m Integer )))
 plusMonads x y = (x>>=( \ z  -> (y>>=( \ v  -> (return (v+z))))));
-mid ::  (Monad m) =>(Integer-> (m Integer ))
-mid = ((example plusMonads) (return 1));
 addState :: ((State Integer Integer )-> (State Integer Integer ))
 addState x = (x>>=f);
 f :: (Integer-> (State Integer Integer ))

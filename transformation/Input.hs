@@ -45,15 +45,16 @@ maplet f (x:xs) =
     h:t \n
 
 
-example::Monad m => (m Integer -> m Integer -> m Integer)-> m Integer -> Integer -> m Integer;
-example f a b = f a (return b)\n
+mid::Monad m =>m Integer;
+mid = example plusMonads (return 1) (return 2)  \n
+
+
+example::Monad m => (m Integer -> m Integer -> m Integer)-> m Integer -> m Integer -> m Integer;
+example f a b = plusMonads a  b\n
 
 plusMonads::Monad m => m Integer -> m Integer -> m Integer;
 plusMonads x y = x>>=(\z->(y>>=\v->(return(v+z)))) \n
 
-
-mid::Monad m =>Integer -> m Integer;
-mid = example plusMonads (return 1)  \n
 
 addState::State Integer Integer -> State Integer Integer ;
 addState x = x>>= f \n 

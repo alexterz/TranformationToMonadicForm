@@ -108,7 +108,7 @@ transformlocalDclrs (d:ds) t tApats tFuncs= (transformDclr d t tApats tFuncs):(t
 transformDclr:: Dclr -> Type -> TypedApats ->TypedFuncs -> Dclr
 transformDclr (Assign name apats expr) t tApats tFuncs= 
   Assign (name++"'") apats expr'
-    where expr' = fst (transformExprMonad (expr,Void) typedApats tFuncs 0) --(Lam [Var "x"] (App (Apat (Var "return")) (Apat (Var "x"))))
+    where expr' = fst (transformExpr (expr,Void) typedApats tFuncs 0) --(Lam [Var "x"] (App (Apat (Var "return")) (Apat (Var "x"))))
           typedApats = transformApats apats t tApats
 
 transformApats:: [Apats]-> Type-> TypedApats -> TypedApats
@@ -136,16 +136,7 @@ insertApats (l:ls) t tApats =
   insertApat l t tApats'
   where 
     tApats' = insertApats ls t tApats
-------------------------------------------------------------------------------------------------------------------
-transformExprMonad::  (Expr,Type)-> TypedApats ->TypedFuncs -> Integer-> (Expr,Type)--(Expr,Type)
-transformExprMonad (e@(Apat (Var name)),t) tApats tFuncs i= --  οκ 
-  case (Map.lookup (Var name) tApats) of
-    Just (Container _ _ ) -> (e,Void)
-    otherwise -> toMonad (e,t) tApats tFuncs i
-transformExprMonad (e,t) tApats tFuncs i = 
-  transformExpr (e,t) tApats tFuncs i   
-
-
+------------------------------------------------------------------------------------------------------------------ 
 transformExpr:: (Expr,Type)-> TypedApats ->TypedFuncs -> Integer-> (Expr,Type) --Expr --
 transformExpr (e@(Apat apats),t) tApats tFuncs i= --  οκ 
   toMonad (e,t) tApats tFuncs i 
@@ -187,7 +178,7 @@ transformExpr ((Monadic e),t) _ _ _= ((Monadic e),t)
 
 transformExprs:: [Expr] ->Type -> TypedApats ->TypedFuncs -> Integer -> [Expr]
 transformExprs [] t tApats tFuncs i = []
-transformExprs (e:es) t tApats tFuncs i = (fst (transformExprMonad (e,t) tApats tFuncs i)):(transformExprs es t tApats tFuncs i)
+transformExprs (e:es) t tApats tFuncs i = (fst (transformExpr(e,t) tApats tFuncs i)):(transformExprs es t tApats tFuncs i)
 
 
 transformSpecialExpr:: (Expr,Type)-> TypedApats ->TypedFuncs -> Integer-> (Expr,Type)
@@ -222,8 +213,6 @@ toMonad (e@(Apat (Var "get")),t) tApats tFuncs _ =
   (e, Void)  
 toMonad (e@(Apat (Var "return")),t) tApats tFuncs _ = 
   (returnExpr e, TFunc (Literal "a") (Container "m" [Literal "a"]))
---toMonad (e@(Apat (Var "runState")),t) tApats tFuncs _ = 
---  (returnExpr e, TFunc (Container "State" [Literal "s", Literal "a"]) (TFunc (Literal "s") (TTuple [Literal "a",Literal "s"])))
 toMonad (e@(Apat (Var name)),t) tApats tFuncs _ = 
   case (Map.lookup (Var name) tApats) of -- for literals οκ
     Just (Void) -> (returnExpr e,Void) 
