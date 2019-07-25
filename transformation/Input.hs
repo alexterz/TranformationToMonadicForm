@@ -45,8 +45,19 @@ maplet f (x:xs) =
     h:t \n
 
 
+example::Monad m => (m Integer -> m Integer -> m Integer)-> m Integer -> Integer -> m Integer;
+example f a b = f a (return b)\n
+
+plusMonads::Monad m => m Integer -> m Integer -> m Integer;
+plusMonads x y = x>>=(\z->(y>>=\v->(return(v+z)))) \n
+
+
+mid::Monad m =>Integer -> m Integer;
+mid = example plusMonads (return 1)  \n
+
 addState::State Integer Integer -> State Integer Integer ;
 addState x = x>>= f \n 
+
 
 f:: Integer -> State Integer Integer ; 
 f p = get >>= (g p) \n
@@ -61,6 +72,6 @@ sum1:: State Integer Integer;
 sum1 = (addState (return 1))\n    
 
 result:: (Integer, Integer);
-result = runState sum1 (5+2)
+result = runState sum1 5
 
 
