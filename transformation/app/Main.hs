@@ -50,11 +50,11 @@ main = runInputT defaultSettings loop
                  liftIO 
                  (((readInput $ inputFile++".hs")>>= process) >>= 
                  (\(str1,str2) -> (writeOutput inputFile str1 str2 ))>>=
-                 (\_-> [sh| ghc $file1 |])>>=
-                 (\comp1-> [sh| ghc $file2 |]>>= 
-                 (\comp2-> [sh| ./$exec1 |]>>= 
-                 (\exec1->([sh| ./$exec2 |])>>=
-                 (\exec2-> putStrLn (comp1++"Output:\n"++exec1 ++"\n"++comp2++"Transformated Output:\n"++exec2)))))>>=
+                 (\_-> [sh| ghc $file2 |])>>=
+                 (\comp2->([sh| ./$exec2 |])>>= 
+                 (\exec2-> [sh| ghc $file1 |]>>= 
+                 (\comp1-> [sh| ./$exec1 |]>>= 
+                 (\exec1-> putStrLn (comp1++"Output:\n"++exec1 ++"\n"++comp2++"Transformated Output:\n"++exec2)))))>>=
                  (\_->[sh| rm $out1 $out2 $exec1 $exec2|])) >> loop
                  where
                     file1 = (inputFile ++"Output.hs")
@@ -63,8 +63,7 @@ main = runInputT defaultSettings loop
                     out2 = (inputFile ++ "TransfOutput.o") 
                     exec1 = (inputFile ++"Output")
                     exec2 = (inputFile ++ "TransfOutput")     
-        --       ((liftIO  ((readInput inputFile)>>= process)) >>= outputStrLn)>> loop 
-      Just input -> (liftIO $ process input) >> loop
+
 
 
 writeOutput :: FilePath -> String -> String ->IO()
@@ -108,16 +107,15 @@ binop =
   "cons = let cons' x xs = return (x:xs) in return (mConvert1 cons')\n\n"
 
 
-
 imports::String
 imports =
-  "import Control.Eff\nimport Control.Monad\nimport Control.Eff.State.Strict\nimport Data.Tuple.Sequence\n\n"
+  "import Control.Eff\nimport Control.Monad\nimport Control.Eff.State.Lazy\nimport Control.Eff.Exception\nimport Data.Tuple.Sequence\n\n"
 
 
 outimports::String
 outimports =
-  "import Control.Monad.State.Strict\n\n"   
+  "import Control.Monad.State.Lazy\nimport Control.Monad.Except\n\n"   
 
 
 langExtensions:: String
-langExtensions = "{-# LANGUAGE ScopedTypeVariables #-}\n{-# LANGUAGE MonoLocalBinds #-}\n{-# LANGUAGE FlexibleContexts #-}\n{-# LANGUAGE AllowAmbiguousTypes #-}\n\n"  
+langExtensions = "{-# LANGUAGE ScopedTypeVariables #-}\n{-# LANGUAGE MonoLocalBinds #-}\n{-# LANGUAGE FlexibleContexts #-}\n\n"  

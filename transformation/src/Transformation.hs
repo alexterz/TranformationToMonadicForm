@@ -20,19 +20,23 @@ runTransformation [] tFuncs _= ([],tFuncs)
 runTransformation ((d@(WithSign (ContSignature name _ t) _)):ds) tFuncs tApats=
   case t of
     ForAll _ t' -> 
-      (((transformAllDclr d alltFuncs tApats ): list), alltFuncs)
-      where typedFuncs =  Map.insert name t' tFuncs --check if it works-- tFuncs --it works but it's not lazy! fix it!
+      ((dclr: list), alltFuncs)
+      where (dclr,cont) = transformAllDclr d alltFuncs tApats
+            typedFuncs =  Map.insert name t' tFuncs --check if it works-- tFuncs --it works but it's not lazy! fix it! 
+           -- contexts = Map.insert name cont allCont  
             (list, alltFuncs) = (runTransformation ds typedFuncs tApats)
     Type t' ->   
-      (((transformAllDclr d alltFuncs tApats ): list), alltFuncs)
-      where typedFuncs =  Map.insert name t' tFuncs--alltFuncs --check if it works--  --it works but it's not lazy! fix it!
-            (list, alltFuncs) = (runTransformation ds typedFuncs tApats)    
+      ((dclr: list), alltFuncs)
+      where (dclr,cont) = transformAllDclr d alltFuncs tApats
+            typedFuncs =  Map.insert name t' tFuncs --check if it works-- tFuncs --it works but it's not lazy! fix it!
+            (list, alltFuncs) = (runTransformation ds typedFuncs tApats)  
 
-transformAllDclr :: AllDclr-> TypedFuncs-> TypedApats-> AllDclr
+transformAllDclr :: AllDclr-> TypedFuncs-> TypedApats-> (AllDclr,[Context])
 transformAllDclr (WithSign typesign@(ContSignature name cont t) d) tFuncs tApats=
-  (WithSign signToMonad ((transformDclrs d t' tApats tFuncs )))
+  ((WithSign signToMonad dclr),cont)
     where 
-      signToMonad = (transformTypeSign typesign)
+      (dclr) = transformDclrs d t' tApats tFuncs
+      (signToMonad@(ContSignature name cont t))= transformTypeSign typesign
       t' = case t of
             (ForAll names t1)-> t1
             (Type t1) -> t1  
@@ -73,6 +77,12 @@ transformType (TFunc t1 t2) cont delcont =
     ((Container "Eff" ((Literal "r"):[t'])), cont', delcont)  --for a specific monad like State s 
        where cont'= (Constraint (SetMember Lift (Lift IO) t)):cont  
              (t',c,c1) = transformType t cont' delcont --}
+transformType (Container "Either" [t1,t2]) cont delcont=
+  ((Container "Eff" [Literal "r", Container "Either" [t1',t2']]), uniq (j++k), c1++c2)  
+      where (t1',j,c1) = transformType t1 cont  []
+            (t2',k,c2) = transformType t2 cont delcont             
+transformType (Container "Except" types) cont delcont=
+  transformType (Container "Exc" types) cont delcont          
 transformType (Container name types) cont delcont= 
   case types of 
     [t] -> ((Container "Eff" (Literal "r" :[t'])), c, c1) --for an arbitrary monad m type   
@@ -171,7 +181,7 @@ transformExpr ((Bind e1 e2),t) tApats tFuncs i =
   where
     (e2',TFunc t1 t2) = transformExpr (e2,t) tApats tFuncs (i+1)
     (e1',_) = transformExpr (e1,t) tApats tFuncs (i+1)
-transformExpr ((Monadic e),t) _ _ _= ((Monadic e),t)      
+transformExpr ((Str e),t) _ _ _= (returnExpr(Str e),t)      
 
 
 transformExprs:: [Expr] ->Type -> TypedApats ->TypedFuncs -> Integer -> [Expr]
@@ -180,7 +190,8 @@ transformExprs (e:es) t tApats tFuncs i = (fst (transformExpr(e,t) tApats tFuncs
 
 
 transformSpecialExpr:: (Expr,Type)-> TypedApats ->TypedFuncs -> Integer-> (Expr,Type)
-transformSpecialExpr ((App (App (Apat(Var "runState")) e2) e3),t) tApats tFuncs i = --ok
+-----------------------Functions for STate Monad ---------------------------------------------------------------
+transformSpecialExpr ((App (App (Apat(Var "runState")) e2) e3),t) tApats tFuncs i = 
   ((Bind e3' (Lam [Var ("s"++show i)] (App (App (Apat(Var "runState")) (Apat(Var ("s"++show i)))) e2'))),t) 
   where
     (e2',_) = transformExpr (e2,t) tApats tFuncs (i+1)
@@ -189,6 +200,16 @@ transformSpecialExpr ((App (Apat(Var "put")) e2),t) tApats tFuncs i =
   ((Bind e2' (Lam [Var ("s"++show i)] (App (Apat(Var "put")) (Apat(Var ("s"++show i)))))),t) 
   where
     (e2',_) = transformExpr (e2,t) tApats tFuncs (i+1)
+---------------------Functions for Exception Monad -------------------------------------------------------------
+transformSpecialExpr ((App (Apat(Var "throwError")) e2),t) tApats tFuncs i =
+  ((Bind e2' (Lam [Var ("e"++show i)] (App (Apat(Var "throwError")) (Apat(Var ("e"++show i)))))),Void) 
+  where
+    (e2',_) = transformExpr (e2,t) tApats tFuncs (i+1) 
+transformSpecialExpr ((App (Apat(Var "runExcept")) e2),t) tApats tFuncs i = 
+  (App (Apat(Var "runError")) e2',Void) 
+  where
+    (e2',_) = transformExpr (e2,t) tApats tFuncs (i+1)      
+----------------------------------------------------------------------------------------------------------------  
 transformSpecialExpr ((App e1 e2),t) tApats tFuncs i = --ok
   case t1 of
     (Container _ _) -> 

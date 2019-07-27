@@ -31,7 +31,6 @@ tokens :-
   \\n                           { \s -> TokenNewLine }
   \::                           { \s -> TokenHasType }
   "=>"                          { \s -> TokenContext }
---  return                        { \s -> TokenReturn } 
   forall                        { \s -> TokenForAll }
   let                           { \s -> TokenLet }
   True                          { \s -> TokenTrue }
@@ -39,6 +38,7 @@ tokens :-
   in                            { \s -> TokenIn }
   $digit+                       { \s -> TokenNum (read s) }
   "->"                          { \s -> TokenArrow }
+  \"                            { \s -> TokenQuotes }
   \=                            { \s -> TokenEq }
   \\                            { \s -> TokenLambda }
   [\+]                          { \s -> TokenAdd }
@@ -67,7 +67,6 @@ data Token
   | TokenContext
   | TokenForAll  
   | TokenLet
---  | TokenReturn
   | TokenTrue
   | TokenFalse
   | TokenIn
@@ -75,6 +74,7 @@ data Token
   | TokenNum Int
   | TokenSym String
   | TokenArrow
+  | TokenQuotes
   | TokenEq
   | TokenAdd
   | TokenSub

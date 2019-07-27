@@ -16,6 +16,8 @@ type TypedApats = Map.Map Apats Type
 
 type TypedFuncs = Map.Map Name Type
 
+type ContextFuncs = Map.Map Name [Context] 
+
 type Types = (TypedFuncs,TypedApats)
 
 data AllDclr
@@ -64,7 +66,7 @@ data Expr
   | List [Expr]
   | Tuple [Expr]
   | Bind Expr Expr 
-  | Monadic Expr
+  | Str String
   deriving (Eq,Show)
 
  

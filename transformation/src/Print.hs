@@ -87,7 +87,6 @@ printListArgs [l] = "[" ++ printApat l ++ "]"
 printListArgs (l:ls) = 
   case (last ls) of
     ListArgs [Var n] -> "(" ++ printConsElem (init (l:ls)) ++ " : " ++  n ++ ")" 
- --   ListArgs apats -> "(" ++ printConsElem (init (l:ls)) ++ " : " ++  printListArgs apats ++ ")" 
     otherwise -> "[" ++ printListElem (l:ls) ++ "]"
 
 printConsElem:: [Apats] -> String
@@ -116,14 +115,11 @@ printExpr (Tuple exprs) =
    "(" ++ printListExpr exprs ++")"  
 printExpr (Cons e1 e2) =
      "(" ++ printExpr e1 ++ ":" ++ printExpr e2 ++")"
-    -- Cons e es -> "(" ++ printExpr expr ++":" ++ printExpr (Cons e es) ++")"    
-   --  otherwise -> "(" ++ printExpr expr ++ ":" ++ printListExpr exprs ++ ")" 
 printExpr (App e1 e2) = 
   "("++ printExpr e1 ++ " " ++ printExpr e2 ++")" 
 printExpr (Bind e1 e2) =
-  "("++ printExpr e1 ++ ">>=" ++ printExpr e2 ++")"
---printExpr (Monadic expr) =   
-printExpr (Monadic e) = "(" ++ printExpr e ++ ")"
+  "("++ printExpr e1 ++ ">>=" ++ printExpr e2 ++")"  
+printExpr (Str e) = ('"') :(e ++ ['"'])
 
 printListExpr:: [Expr]->String
 printListExpr [] = ""

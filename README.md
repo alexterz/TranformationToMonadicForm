@@ -38,7 +38,7 @@ You can load the input file, by running:
 `:l name`
 
 then the tool will automatically generate 3 files. The first,named `nameOutput.hs`
-corresponds to the Original Haskell code, the second is an auxiliary folder, 
+corresponds to the Original Haskell code, the second is an auxiliary file, 
 named `nameMConvert.hs` and the third is the transformated file, named 
 `nameTransfOutput.hs`. Afterwards, it will compile and run them, showing 
 the results in the screen.

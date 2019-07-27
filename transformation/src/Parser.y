@@ -32,7 +32,6 @@ import Control.Monad.Except
     '\n'   { TokenNewLine}
     '::'   { TokenHasType }
     '=>'   { TokenContext } 
---    return { TokenReturn }
     forall { TokenForAll }
     let    { TokenLet }
     true   { TokenTrue }
@@ -42,6 +41,7 @@ import Control.Monad.Except
     VAR    { TokenSym $$ }
     '\\'   { TokenLambda }
     '->'   { TokenArrow }
+    '"'    { TokenQuotes}
     '='    { TokenEq }
     '+'    { TokenAdd }
     '-'    { TokenSub }
@@ -89,7 +89,6 @@ Dclr : VAR Apats '=' Expr       { Assign $1 $2 $4}
 Expr : let AllDclrs in Expr         { Let $2 $4} 
      | '\\' Apats '->' Expr         { Lam $2 $4 }
      | Expr ':' Expr                { Cons $1 $3} 
-     --| return Expr                  { Monadic $2 }
      | Expr '>>=' Expr              { Bind $1 $3 } 
      | Form                         { $1 }
 
@@ -106,6 +105,7 @@ Fact : Fact Atom                   { App $1 $2 }
 
 Atom :'(' Expr ')'                 {  $2 } 
      |'(' Tuple ')'                { Tuple $2 }
+     | '"' VAR '"'                 { Str $2 }
      | List                        { List $1} 
      | NUM                         { Apat (Lit (LInt $1)) }
      | VAR                         { Apat (Var $1) }

@@ -17,6 +17,12 @@ plus2 x y = x+y\n
 alex::Integer->Integer;
 alex x = x-1\n
 
+m1:: State Integer Integer;
+m1= return 1\n
+
+one::Integer ;
+one = alex' 5 ( m1) \n
+
 sub1::Integer->State Integer Integer;
 sub1 x = return (x-1)\n
 
@@ -45,6 +51,9 @@ maplet f (x:xs) =
     h:t \n
 
 
+plusMonads::Monad m => m Integer -> m Integer -> m Integer;
+plusMonads x y = x>>=(\z->(y>>=\v->(return(v)))) \n
+
 mid::(Integer,Integer);
 mid = runState (example plusMonads 1 (return 2)) 7  \n
 
@@ -52,8 +61,6 @@ mid = runState (example plusMonads 1 (return 2)) 7  \n
 example::Monad m => (m Integer -> m Integer -> m Integer)->  Integer -> m Integer -> m Integer;
 example f a b = plusMonads (return a)  b\n
 
-plusMonads::Monad m => m Integer -> m Integer -> m Integer;
-plusMonads x y = x>>=(\z->(y>>=\v->(return(v+z)))) \n
 
 
 addState::State Integer Integer -> State Integer Integer ;
@@ -72,13 +79,21 @@ addState' x = (x>>=(\q-> get>>= (\y-> (put (y+1))>>=(\z-> return (y+q))))) \n
 createStMonad:: Integer -> (Integer , Integer) ;
 createStMonad s = (1 , s) \n
 
-sum1:: State Integer Integer;
-sum1 = (addState' (return 1))\n    
+sum1:: Integer-> State Integer Integer;
+sum1 x= (addState' (return x))\n    
 
 tryBind:: Integer ->Integer -> State Integer Integer;
-tryBind x y = return (x+y) >>= \z -> return z\n
+tryBind x y = return (x+y) >>= \z -> (g 1 z)\n
 
-result:: (Integer, Integer);
-result = runState (addState' (tryBind 4 5)) 2
+tryExc:: Integer -> Except String Integer;
+tryExc x = return x \n
 
+tryBoth::Monad m => Except String Integer-> State Integer Integer ->m Integer;
+tryBoth exc st = exc>>=\x-> (st>>=\y-> return (x+y))\n
+
+tryRunExc:: Either String Integer;
+tryRunExc = runExcept (tryExc 1)\n
+
+result:: Integer;
+result = tryBoth (return 1) (return 2)
 
