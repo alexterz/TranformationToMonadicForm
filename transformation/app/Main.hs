@@ -30,14 +30,18 @@ execPrint :: [AllDclr]-> String
 execPrint ast = runPrint ast "\n"--("{--Syntax Dclr: " ++ show ast ++ "--}\n") ++(runPrint ast)++ "\n" 
 
 execTransformation :: [AllDclr]-> (String)
-execTransformation ast = runPrint transformed "\n" --("{--"++show (runTransformation ast)) ++"--}\n" ++(runPrint transformed) --
-  where transformed = fst (runTransformation ast tFuncs Map.empty) -- in the second map i have to add functions plus, sub,mul, minus
+execTransformation ast = runPrint transformated "\n" --("{--"++show (runTransformation ast)) ++"--}\n" ++(runPrint transformed) --
+  where (transformated,_,_) =(runTransformation ast tFuncs Map.empty cFuncs) -- in the second map i have to add functions plus, sub,mul, minus
         tFuncs = Map.insert "plus" binOpSign tFuncs' 
         tFuncs' = Map.insert "sub" binOpSign tFuncs''
         tFuncs'' =Map.insert "multiple" binOpSign tFuncs'''
         tFuncs''' =  Map.insert "cons" consSign Map.empty 
         binOpSign = (TFunc (Literal "a") (TFunc (Literal "a") (Literal "a")))
-        consSign = (TFunc (Literal "a") (TFunc (TList (Literal "a")) (TList(Literal "a")))) 
+        consSign = (TFunc (Literal "a") (TFunc (TList (Literal "a")) (TList(Literal "a"))))
+        cFuncs = Map.insert "plus" [] cFuncs'
+        cFuncs' = Map.insert "sub" [] cFuncs''
+        cFuncs'' = Map.insert "multiple" [] cFuncs'''
+        cFuncs''' = Map.insert "plus" [] Map.empty
         
 main :: IO ()
 main = runInputT defaultSettings loop

@@ -21,14 +21,10 @@ one :: Integer
 one = ((alex' 5) m1);
 sub1 :: (Integer-> (State Integer Integer ))
 sub1 x = (return (x-1));
-intermediate :: ([Integer]-> [Integer])
-intermediate = (maplet alex);
 inter :: ((Integer-> (Integer-> Integer))-> (Integer-> ([Integer]-> Integer)))
 inter f = (foldrK f);
 alex' :: (Integer-> ((State Integer Integer )-> Integer))
 alex' x y = (1+x);
-maplet :: forall a b .((a-> b)-> ([a]-> [b]))
-maplet f [] = [];maplet f (x : xs) = (let h :: b;h = (f x);t :: [b];t = ((maplet f) xs);z :: Integer;z = (alex 1);in (h:t));
 plusMonads ::  (Monad m) =>((m Integer )-> ((m Integer )-> (m Integer )))
 plusMonads x y = (x>>=( \ z  -> (y>>=( \ v  -> (return v)))));
 mid :: (Integer,Integer)

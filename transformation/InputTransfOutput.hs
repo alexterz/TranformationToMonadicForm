@@ -21,18 +21,14 @@ alex :: (Eff r (Integer-> (Eff r Integer )) )
 alex = (return (let alex' x = ((return 1)>>=( \ x1  -> (((return x)>>=( \ x2  -> (sub>>=( \ g2  -> (g2 x2)))))>>=( \ g1  -> (g1 x1)))));;in alex'));
 m1 ::  (Member (State Integer) r) =>(Eff r Integer )
 m1 = (let m1' = ((return 1)>>=( \ x0  -> ((return return)>>=( \ g0  -> (g0 x0)))));;in m1');
-one :: (Eff r Integer )
+one ::  (Member (State Integer) r) =>(Eff r Integer )
 one = (let one' = (((return 5)>>=( \ x1  -> (alex'>>=( \ g1  -> (g1 x1)))))>>=( \ g0  -> (g0 m1)));;in one');
 sub1 ::  (Member (State Integer) r) =>(Eff r (Integer-> (Eff r Integer )) )
 sub1 = (return (let sub1' x = (((return 1)>>=( \ x2  -> (((return x)>>=( \ x3  -> (sub>>=( \ g3  -> (g3 x3)))))>>=( \ g2  -> (g2 x2)))))>>=( \ x0  -> ((return return)>>=( \ g0  -> (g0 x0)))));;in sub1'));
-intermediate :: (Eff r ([Integer]-> (Eff r [Integer] )) )
-intermediate = (let intermediate' = (alex>>=( \ x0  -> (maplet>>=( \ g0  -> (g0 x0)))));;in intermediate');
 inter :: (Eff r ((Integer-> (Eff r (Integer-> (Eff r Integer )) ))-> (Eff r (Integer-> (Eff r ([Integer]-> (Eff r Integer )) )) )) )
 inter = (return (let inter' f = ((return f)>>=( \ x0  -> (foldrK>>=( \ g0  -> (g0 x0)))));;in inter'));
 alex' ::  (Member (State Integer) r) =>(Eff r (Integer-> (Eff r ((Eff r Integer )-> (Eff r Integer )) )) )
 alex' = (return (let alex'' x y = ((return x)>>=( \ x1  -> (((return 1)>>=( \ x2  -> (plus>>=( \ g2  -> (g2 x2)))))>>=( \ g1  -> (g1 x1)))));;in (mConvert1 alex'')));
-maplet :: forall r a b .(Eff r ((a-> (Eff r b ))-> (Eff r ([a]-> (Eff r [b] )) )) )
-maplet = (return (let maplet' f [] = (sequence []);maplet' f (x : xs) = (let h :: (Eff r b );h = (let h' = ((return x)>>=( \ x0  -> ((return f)>>=( \ g0  -> (g0 x0)))));;in h');t :: (Eff r [b] );t = (let t' = ((return xs)>>=( \ x0  -> (((return f)>>=( \ x1  -> (maplet>>=( \ g1  -> (g1 x1)))))>>=( \ g0  -> (g0 x0)))));;in t');z :: (Eff r Integer );z = (let z' = ((return 1)>>=( \ x0  -> (alex>>=( \ g0  -> (g0 x0)))));;in z');in (t>>=( \ x2  -> ((h>>=( \ x3  -> (cons>>=( \ g3  -> (g3 x3)))))>>=( \ g2  -> (g2 x2))))));;in (mConvert1 maplet')));
 plusMonads :: (Eff r ((Eff r Integer )-> (Eff r ((Eff r Integer )-> (Eff r Integer )) )) )
 plusMonads = (return (let plusMonads' x y = (x>>=( \ z  -> (y>>=( \ v  -> ((return v)>>=( \ x2  -> ((return return)>>=( \ g2  -> (g2 x2)))))))));;in (mConvert1 plusMonads')));
 mid :: (Eff r (Integer,Integer) )
@@ -57,9 +53,9 @@ tryExc ::  (Member (Exc String) r) =>(Eff r (Integer-> (Eff r Integer )) )
 tryExc = (return (let tryExc' x = ((return x)>>=( \ x0  -> ((return return)>>=( \ g0  -> (g0 x0)))));;in tryExc'));
 tryBoth ::  (Member (Exc String) r, Member (State Integer) r) =>(Eff r ((Eff r Integer )-> (Eff r ((Eff r Integer )-> (Eff r Integer )) )) )
 tryBoth = (return (let tryBoth' exc st = (exc>>=( \ x  -> (st>>=( \ y  -> (((return y)>>=( \ x4  -> (((return x)>>=( \ x5  -> (plus>>=( \ g5  -> (g5 x5)))))>>=( \ g4  -> (g4 x4)))))>>=( \ x2  -> ((return return)>>=( \ g2  -> (g2 x2)))))))));;in (mConvert1 tryBoth')));
-tryRunExc :: (Eff r (Either String Integer ) )
+tryRunExc ::  (Member (Exc String) r) =>(Eff r (Either String Integer ) )
 tryRunExc = (let tryRunExc' = (runError ((return 1)>>=( \ x1  -> (tryExc>>=( \ g1  -> (g1 x1))))));;in tryRunExc');
-result :: (Eff r Integer )
+result ::  (Member (Exc String) r, Member (State Integer) r) =>(Eff r Integer )
 result = (let result' = ((tryBoth>>=( \ g1  -> (g1 ((return 1)>>=( \ x2  -> ((return return)>>=( \ g2  -> (g2 x2))))))))>>=( \ g0  -> (g0 ((return 2)>>=( \ x1  -> ((return return)>>=( \ g1  -> (g1 x1))))))));;in result');
 
 main::IO ()
