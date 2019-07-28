@@ -82,5 +82,9 @@ tryBoth exc st = exc>>=\x-> (st>>=\y-> return (x+y))\n
 tryRunExc:: Either String Integer;
 tryRunExc = runExcept (tryExc 1)\n
 
-result:: Integer;
-result = tryBoth (return 1) (return 2)
+res1:: Monad m => m Integer ;
+res1 = (fst (runState (tryBoth (return 1) (return 2)) 5))\n
+
+
+result:: Either String Integer;
+result = runExcept res1

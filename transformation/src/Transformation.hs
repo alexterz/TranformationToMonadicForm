@@ -226,6 +226,10 @@ transformSpecialExpr ((App (Apat(Var "put")) e2),t) tApats tFuncs ns i =
   ((Bind e2' (Lam [Var ("s"++show i)] (App (Apat(Var "put")) (Apat(Var ("s"++show i)))))),t,ns') 
   where
     (e2',_,ns') = transformExpr (e2,t) tApats tFuncs ns (i+1)
+transformSpecialExpr ((App (Apat(Var "fst")) e2),t) tApats tFuncs ns i = 
+  ((Bind e2' (Lam [Var ("t"++show i)] (returnExpr(App (Apat(Var "fst")) (Apat(Var ("t"++show i))))))),t,ns') 
+  where
+    (e2',_,ns') = transformExpr (e2,t) tApats tFuncs ns (i+1)   
 ---------------------Functions for Exception Monad -------------------------------------------------------------
 transformSpecialExpr ((App (Apat(Var "throwError")) e2),t) tApats tFuncs ns i =
   ((Bind e2' (Lam [Var ("e"++show i)] (App (Apat(Var "throwError")) (Apat(Var ("e"++show i)))))),Void,ns') 

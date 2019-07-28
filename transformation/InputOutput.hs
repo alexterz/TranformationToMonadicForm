@@ -51,8 +51,10 @@ tryBoth ::  (Monad m) =>((Except String Integer )-> ((State Integer Integer )-> 
 tryBoth exc st = (exc>>=( \ x  -> (st>>=( \ y  -> (return (x+y))))));
 tryRunExc :: (Either String Integer )
 tryRunExc = (runExcept (tryExc 1));
-result :: Integer
-result = ((tryBoth (return 1)) (return 2));
+res1 ::  (Monad m) =>(m Integer )
+res1 = (fst ((runState ((tryBoth (return 1)) (return 2))) 5));
+result :: (Either String Integer )
+result = (runExcept res1);
 
 main::IO ()
 main= putStrLn $show $result
