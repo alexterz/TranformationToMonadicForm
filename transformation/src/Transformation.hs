@@ -21,7 +21,8 @@ runTransformation ((d@(WithSign (ContSignature name _ t) _)):ds) tFuncs tApats c
   ((dclr: list), alltFuncs, allcFuncs)
   where --dclr = transformAllDclr d alltFuncs tApats 
         ((WithSign (ContSignature name cont monadicT) transfDclr),ns) = transformAllDclr d alltFuncs tApats 
-        finalCont = uniq ((concat (giveCont name ns allcFuncs)) ++ cont) --thanks lazyness!!
+        finalCont = runContext (uniq ((concat addCont ) ++ cont)) ns 
+        addCont = (giveCont name ns allcFuncs) --thanks lazyness!!
         updatedcFuncs = Map.insert name finalCont cFuncs
         typedFuncs =  Map.insert name t' tFuncs --thanks lazyness!!
         dclr = (WithSign (ContSignature name finalCont monadicT) transfDclr)  
@@ -42,13 +43,13 @@ transformAllDclr (WithSign typesign@(ContSignature name _ t) d) tFuncs tApats =
 
 giveCont:: Name -> [Name] -> ContextFuncs -> [[Context]]
 giveCont name [] _  = []
-giveCont name (n:ns) cFuncs = 
-  if (n==name) 
-  then (giveCont name ns cFuncs)
-  else       
+giveCont name (n:ns) cFuncs =
+ if (n==name) then cs else
       case Map.lookup n cFuncs of
-        Just context -> ((monadicCont context):(giveCont name ns cFuncs))
-        otherwise -> (giveCont name ns cFuncs)
+        Just context -> ((monadicCont context):cs)
+        otherwise -> cs
+  where
+     cs=(giveCont name ns cFuncs)      
 
 
 monadicCont:: [Context] -> [Context]
@@ -57,6 +58,24 @@ monadicCont (c:cs) =
   case c of 
       Constraint (Class cl) name -> monadicCont cs
       otherwise -> c:(monadicCont cs)
+
+runContext:: [Context] -> [Name] -> [Context]
+runContext cont [] = cont
+runContext cont (n:ns) = 
+  case n of 
+    "runState" -> runContext cont' ns
+      where
+       cont' = filter (\x -> 
+        case x of 
+         (Constraint (Member "State" _) "r")   -> False
+         otherwise -> True)  cont     
+    "runError" -> runContext cont' ns
+      where
+        cont' = filter (\x -> 
+         case x of 
+          (Constraint (Member "Exc" _) "r")   -> False
+          otherwise -> True)  cont  
+    otherwise -> runContext cont ns    
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 transformTypeSign :: TypeSignature -> TypeSignature
 transformTypeSign (ContSignature name cont t) =
@@ -218,10 +237,10 @@ transformExprs (e:es) t tApats tFuncs ns i = ((trexpr:trexprs), (ns'++ns''))
 transformSpecialExpr:: (Expr,Type)-> TypedApats ->TypedFuncs -> [Name] -> Integer-> (Expr,Type,[Name])
 -----------------------Functions for STate Monad ---------------------------------------------------------------
 transformSpecialExpr ((App (App (Apat(Var "runState")) e2) e3),t) tApats tFuncs ns i = 
-  ((Bind e3' (Lam [Var ("s"++show i)] (App (App (Apat(Var "runState")) (Apat(Var ("s"++show i)))) e2'))),t, (ns'++ns'')) 
+  ((Bind e3' (Lam [Var ("s"++show i)] (App (App (Apat(Var "runState")) (Apat(Var ("s"++show i)))) e2'))),t, (("runState"):(ns'++ns''))) 
   where
     (e2',_,ns') = transformExpr (e2,t) tApats tFuncs ns (i+1)
-    (e3',_,ns'') = transformExpr (e3,t) tApats tFuncs ns (i+1)
+    (e3',_,ns'') = transformExpr (e3,t) tApats tFuncs [] (i+1)
 transformSpecialExpr ((App (Apat(Var "put")) e2),t) tApats tFuncs ns i =
   ((Bind e2' (Lam [Var ("s"++show i)] (App (Apat(Var "put")) (Apat(Var ("s"++show i)))))),t,ns') 
   where
@@ -236,7 +255,7 @@ transformSpecialExpr ((App (Apat(Var "throwError")) e2),t) tApats tFuncs ns i =
   where
     (e2',_,ns') = transformExpr (e2,t) tApats tFuncs ns (i+1) 
 transformSpecialExpr ((App (Apat(Var "runExcept")) e2),t) tApats tFuncs ns i = 
-  (App (Apat(Var "runError")) e2',Void, ns') 
+  (App (Apat(Var "runError")) e2',Void, (("runError"):ns')) 
   where
     (e2',_,ns') = transformExpr (e2,t) tApats tFuncs ns (i+1)      
 ----------------------------------------------------------------------------------------------------------------  

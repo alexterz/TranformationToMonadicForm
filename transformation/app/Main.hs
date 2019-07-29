@@ -55,10 +55,11 @@ main = runInputT defaultSettings loop
                  (((readInput $ inputFile++".hs")>>= process) >>= 
                  (\(str1,str2) -> (writeOutput inputFile str1 str2 ))>>=
                  (\_-> [sh| ghc $file2 |])>>=
-                 (\comp2->([sh| ./$exec2 |])>>= 
-                 (\exec2-> [sh| ghc $file1 |]>>= 
+                 (\comp2->([sh| ./$exec2 |])>>=   
+                 (\exec2-> putStrLn (comp2++"Transformated Output:\n"++exec2 ++"\n")>>=
+                 (\_ ->[sh| ghc $file1 |]>>= 
                  (\comp1-> [sh| ./$exec1 |]>>= 
-                 (\exec1-> putStrLn (comp1++"Output:\n"++exec1 ++"\n"++comp2++"Transformated Output:\n"++exec2)))))>>=
+                 (\exec1-> putStrLn (comp1++"Output:\n"++exec1))))))>>=
                  (\_->[sh| rm $out1 $out2 $exec1 $exec2|])) >> loop
                  where
                     file1 = (inputFile ++"Output.hs")

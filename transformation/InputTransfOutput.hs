@@ -53,11 +53,11 @@ tryExc ::  (Member (Exc String) r) =>(Eff r (Integer-> (Eff r Integer )) )
 tryExc = (return (let tryExc' x = ((return x)>>=( \ x0  -> ((return return)>>=( \ g0  -> (g0 x0)))));;in tryExc'));
 tryBoth ::  (Member (Exc String) r, Member (State Integer) r) =>(Eff r ((Eff r Integer )-> (Eff r ((Eff r Integer )-> (Eff r Integer )) )) )
 tryBoth = (return (let tryBoth' exc st = (exc>>=( \ x  -> (st>>=( \ y  -> (((return y)>>=( \ x4  -> (((return x)>>=( \ x5  -> (plus>>=( \ g5  -> (g5 x5)))))>>=( \ g4  -> (g4 x4)))))>>=( \ x2  -> ((return return)>>=( \ g2  -> (g2 x2)))))))));;in (mConvert1 tryBoth')));
-tryRunExc ::  (Member (Exc String) r) =>(Eff r (Either String Integer ) )
+tryRunExc :: (Eff r (Either String Integer ) )
 tryRunExc = (let tryRunExc' = (runError ((return 1)>>=( \ x1  -> (tryExc>>=( \ g1  -> (g1 x1))))));;in tryRunExc');
-res1 ::  (Member (Exc String) r, Member (State Integer) r) =>(Eff r Integer )
+res1 ::  (Member (Exc String) r) =>(Eff r Integer )
 res1 = (let res1' = (((return 5)>>=( \ s1  -> ((runState s1) ((tryBoth>>=( \ g3  -> (g3 ((return 1)>>=( \ x4  -> ((return return)>>=( \ g4  -> (g4 x4))))))))>>=( \ g2  -> (g2 ((return 2)>>=( \ x3  -> ((return return)>>=( \ g3  -> (g3 x3)))))))))))>>=( \ t0  -> (return (fst t0))));;in res1');
-result ::  (Member (Exc String) r, Member (State Integer) r) =>(Eff r (Either String Integer ) )
+result :: (Eff r (Either String Integer ) )
 result = (let result' = (runError res1);;in result');
 
 main::IO ()
