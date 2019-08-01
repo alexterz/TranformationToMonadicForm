@@ -33,9 +33,12 @@ import Control.Monad.Except
     '::'   { TokenHasType }
     '=>'   { TokenContext } 
     forall { TokenForAll }
+    case   { TokenCase }
+    of     { TokenOf }
     let    { TokenLet }
     true   { TokenTrue }
     false  { TokenFalse }
+    div    { TokenDiv }
     in     { TokenIn }
     NUM    { TokenNum $$ }
     VAR    { TokenSym $$ }
@@ -60,13 +63,13 @@ import Control.Monad.Except
     '.'    { TokenDot}
     
 
--- Osperators
+-- Operators
 %right '->'
 %right in
 %left '>>='
 %right ':'
 %left '+' '-'
-%left '*'
+%left '*' div
 %%
 
 
@@ -87,16 +90,21 @@ Dclr : VAR Apats '=' Expr       { Assign $1 $2 $4}
 
 --let VAR '=' Expr in Expr    { App (Lam $2 $6) $4 }
 Expr : let AllDclrs in Expr         { Let $2 $4} 
+     | case Expr of Cases           { Case $2 $4 }
      | '\\' Apats '->' Expr         { Lam $2 $4 }
-     | Expr ':' Expr                { Cons $1 $3} 
+     | Expr ':' Expr                { Cons $1 $3 } 
      | Expr '>>=' Expr              { Bind $1 $3 } 
      | Form                         { $1 }
 
+Cases: Case ';' Cases               { $1: $3} -- one shift/reduce conflict
+     | Case                         { [$1]} 
 
+Case : Apat '->' Expr              { Condition $1 $3 }
 
 Form : Form '+' Form               { Op Add $1 $3 }
      | Form '-' Form               { Op Sub $1 $3 }
      | Form '*' Form               { Op Mul $1 $3 }
+     | Form div Form               { Op Div $1 $3 }
      | Fact                        { $1 }
 
 Fact : Fact Atom                   { App $1 $2 }
@@ -105,7 +113,7 @@ Fact : Fact Atom                   { App $1 $2 }
 
 Atom :'(' Expr ')'                 {  $2 } 
      |'(' Tuple ')'                { Tuple $2 }
-     | '"' VAR '"'                 { Str $2 }
+     | '"' Strs '"'                { Str $2 }
      | List                        { List $1} 
      | NUM                         { Apat (Lit (LInt $1)) }
      | VAR                         { Apat (Var $1) }
@@ -113,9 +121,11 @@ Atom :'(' Expr ')'                 {  $2 }
      | false                       { Apat (Lit (LBool False)) }
 
 
+Strs: VAR Strs                     { $1 : $2 }
+    | VAR                          { [$1] }
+ 
 Tuple: Expr ',' Tuple               { $1: $3 }
      | Expr ',' Expr                { $1: [$3] }
-
 
 
 -- List for expressions
@@ -175,8 +185,11 @@ Apats: Apat Apats                   { $1 : $2 }
      | {-empty-}                    { [] } 
 
 Apat : ListArgs                      { ListArgs $1 }
+     | Constructor                   { $1 }
      | SimpleApat                    { $1 }    
 --     | '_'                          { } -- kapws prepei na to ftiaxw gia underscore
+
+Constructor : '('VAR Apat ')'         { Constructor $2 $3 }
 
 SimpleApat :'('Apat')'                   { $2 }
            | VAR                         { Var $1 }

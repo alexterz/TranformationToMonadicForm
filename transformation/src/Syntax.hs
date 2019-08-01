@@ -42,6 +42,7 @@ data Type
   = Literal Name
   | TFunc Type Type
   | Container Name [Type]
+  | EffUnionContainer Name Type Type
   | TList Type
   | TTuple [Type]
   | Void    
@@ -66,15 +67,20 @@ data Expr
   | List [Expr]
   | Tuple [Expr]
   | Bind Expr Expr 
-  | Str String
+  | Str [String]
+  | Case Expr [Case]
   deriving (Eq,Show)
 
+data Case 
+  = Condition Apats Expr
+  deriving (Eq,Show)
  
    
 data Apats  
     = Var Name
     | Lit Lit 
     | ListArgs [Apats]
+    | Constructor Name Apats
     deriving (Eq,Show,Ord)
 
 
@@ -83,5 +89,5 @@ data Lit
   | LBool Bool
   deriving (Show, Eq, Ord)
 
-data Binop = Add | Sub | Mul -- | Eql
+data Binop = Add | Sub | Mul | Div -- | Eql
   deriving (Eq, Ord, Show)

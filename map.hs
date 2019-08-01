@@ -1,7 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-#LANGUAGE FlexibleContexts, TypeOperators, DataKinds #-}
 {-# LANGUAGE MonoLocalBinds #-}
-
 
 import Control.Eff
 import Control.Eff.Reader.Strict
@@ -11,6 +10,31 @@ import Control.Eff.Trace
 import Control.Monad
 import MConvert
 import ForTesting
+import Data.OpenUnion
+
+
+
+
+testEither ::  (Member (Exc String) r) =>((Eff r (Either String Integer ))-> (Integer-> (Eff r Integer)))
+testEither =  (let testEither' x i = ((return x)>>=( \ c0  -> (case c0 of (Left s)->((return s)>>=( \ e2  -> (throwError e2))); )));;in  testEither');      
+
+
+
+t12:: (Eff (Exc Integer ': r) Integer)-> Eff r (Either Integer Integer) 
+t12 x = runError x
+
+t13:: Eff r (Either Integer Integer) ->Eff r  Integer
+t13 x  = 
+  x>>= \c0 -> 
+  case c0 of
+    Left a ->  return a
+    Right a -> return a
+
+tryBoth:: ((Member (Exc String) r, Member (State Integer) r)) =>Eff r Integer -> Eff  r Integer -> Eff r Integer;
+tryBoth exc st = exc>>= (\x -> (st>>= (\y-> return (x+y))))
+
+exc:: Eff (Exc String ': r) Integer -> Eff r (Either String Integer)
+exc x = runError (x) 
 
 
 alex' :: (Eff r ((Eff r Integer )-> (Eff r Integer )) )

@@ -30,6 +30,10 @@ sub = let sub' x y = return (x-y) in return (mConvert1 sub')
 multiple::(Num a)=> Eff r (a->Eff r (a-> Eff r a))
 multiple = let multiple' x y = return (x*y) in return (mConvert1 multiple')
 
+
+division:: (Integral a, Num a) => Eff r (a->Eff r (a-> Eff r a))
+division = let division' x y = return (x `div` y) in return (mConvert1 division')
+
 cons:: Eff r (a-> Eff r ([a]->Eff r [a]))
 cons = let cons' x xs = return (x:xs) in return (mConvert1 cons')
 

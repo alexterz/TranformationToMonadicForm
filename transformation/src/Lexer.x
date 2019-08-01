@@ -32,9 +32,12 @@ tokens :-
   \::                           { \s -> TokenHasType }
   "=>"                          { \s -> TokenContext }
   forall                        { \s -> TokenForAll }
+  case                          { \s -> TokenCase }
+  of                            { \s -> TokenOf }
   let                           { \s -> TokenLet }
   True                          { \s -> TokenTrue }
   False                         { \s -> TokenFalse }
+  "`div`"                       { \s -> TokenDiv } 
   in                            { \s -> TokenIn }
   $digit+                       { \s -> TokenNum (read s) }
   "->"                          { \s -> TokenArrow }
@@ -65,7 +68,9 @@ data Token
   = TokenNewLine
   | TokenHasType
   | TokenContext
-  | TokenForAll  
+  | TokenForAll
+  | TokenCase 
+  | TokenOf   
   | TokenLet
   | TokenTrue
   | TokenFalse
@@ -79,6 +84,7 @@ data Token
   | TokenAdd
   | TokenSub
   | TokenMul
+  | TokenDiv
   | TokenLParen
   | TokenRParen
   | TokenSemicolon

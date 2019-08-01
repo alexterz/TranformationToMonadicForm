@@ -9,6 +9,7 @@ import System.ShQQ
 import Control.Monad.Trans
 import System.Console.Haskeline
 import Data.Function
+import Data.Sort
 import qualified Data.Map as Map 
 
 process :: String -> IO (String, String)
@@ -24,7 +25,8 @@ process input = do
         case mainAst of
           Left err -> (err, err)
        --     return $ "Parse Error:"
-          Right ast ->  ((execPrint ast),(execTransformation ast)) --show ast ++"\n"++ 
+          Right ast ->  ((execPrint ast'),(execTransformation ast'))
+                        where ast' = sortOn (\(d@(WithSign (ContSignature name _ _) _)) -> name) ast --show ast ++"\n"++ 
  
 execPrint :: [AllDclr]-> String
 execPrint ast = runPrint ast "\n"--("{--Syntax Dclr: " ++ show ast ++ "--}\n") ++(runPrint ast)++ "\n" 
@@ -35,13 +37,15 @@ execTransformation ast = runPrint transformated "\n" --("{--"++show (runTransfor
         tFuncs = Map.insert "plus" binOpSign tFuncs' 
         tFuncs' = Map.insert "sub" binOpSign tFuncs''
         tFuncs'' =Map.insert "multiple" binOpSign tFuncs'''
-        tFuncs''' =  Map.insert "cons" consSign Map.empty 
+        tFuncs''' =Map.insert "division" binOpSign tFuncs''''
+        tFuncs'''' =  Map.insert "cons" consSign Map.empty 
         binOpSign = (TFunc (Literal "a") (TFunc (Literal "a") (Literal "a")))
         consSign = (TFunc (Literal "a") (TFunc (TList (Literal "a")) (TList(Literal "a"))))
         cFuncs = Map.insert "plus" [] cFuncs'
         cFuncs' = Map.insert "sub" [] cFuncs''
         cFuncs'' = Map.insert "multiple" [] cFuncs'''
-        cFuncs''' = Map.insert "plus" [] Map.empty
+        cFuncs''' =Map.insert "division" [] cFuncs''''
+        cFuncs'''' = Map.insert "plus" [] Map.empty
         
 main :: IO ()
 main = runInputT defaultSettings loop
@@ -108,6 +112,8 @@ binop =
   "sub = let sub' x y = return (x-y) in return (mConvert1 sub')\n\n"++
   "\nmultiple::(Num a)=> Eff r (a->Eff r (a-> Eff r a))\n"++
   "multiple = let multiple' x y = return (x*y) in return (mConvert1 multiple')\n\n"++
+  "\ndivision:: (Integral a, Num a) => Eff r (a->Eff r (a-> Eff r a))\n"++
+  "division = let division' x y = return (x `div` y) in return (mConvert1 division')\n\n"++
   "cons:: Eff r (a-> Eff r ([a]->Eff r [a]))\n"++
   "cons = let cons' x xs = return (x:xs) in return (mConvert1 cons')\n\n"
 
@@ -123,4 +129,4 @@ outimports =
 
 
 langExtensions:: String
-langExtensions = "{-# LANGUAGE ScopedTypeVariables #-}\n{-# LANGUAGE MonoLocalBinds #-}\n{-# LANGUAGE FlexibleContexts #-}\n\n"  
+langExtensions = "{-# LANGUAGE ScopedTypeVariables #-}\n{-# LANGUAGE MonoLocalBinds #-}\n{-#LANGUAGE FlexibleContexts, TypeOperators, DataKinds #-}\n\n"  
