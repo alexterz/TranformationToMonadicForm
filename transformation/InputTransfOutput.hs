@@ -15,8 +15,6 @@ checkSum ::  (Member (Exc String) r) =>(Eff r (Integer-> (Eff r Integer)))
 checkSum = (return (let checkSum' sum = ((return sum)>>=( \ c0  -> (case c0 of 10->((return "Total sum is exactly ten")>>=( \ e2  -> (throwError e2))); x->(return x); )));;in checkSum'));
 map' :: (Eff r ((a-> (Eff r b))-> (Eff r ([a]-> (Eff r [b])))))
 map' = (return (let map'' f [] = (sequence []);map'' f (x : xs) = (((return xs)>>=( \ x2  -> (((return f)>>=( \ x3  -> (map'>>=( \ g3  -> (g3 x3)))))>>=( \ g2  -> (g2 x2)))))>>=( \ x1  -> ((((return x)>>=( \ x3  -> ((return f)>>=( \ g3  -> (g3 x3)))))>>=( \ x2  -> (cons>>=( \ g2  -> (g2 x2)))))>>=( \ g1  -> (g1 x1)))));;in (mConvert1 map'')));
-ok ::  (Member (State Integer) r, Member (Exc e) r) =>(Eff r ((Eff r a)-> (Eff r ((Eff r a)-> (Eff r a)))))
-ok = (return (let ok' ms me = ((return 1)>>=( \ x0  -> ((return return)>>=( \ g0  -> (g0 x0)))));;in (mConvert1 ok')));
 res2 ::  (Member (Exc String) r) =>(Eff r Integer)
 res2 = (let res2' = (((return 0)>>=( \ s1  -> ((runState s1) ((((sequence [(return 0),(return 5),(return 4)])>>=( \ x4  -> ((checkNum>>=( \ x5  -> (map'>>=( \ g5  -> (g5 x5)))))>>=( \ g4  -> (g4 x4)))))>>=( \ x3  -> (sumOfAList>>=( \ g3  -> (g3 x3)))))>>=( \ x2  -> (checkSum>>=( \ g2  -> (g2 x2))))))))>>=( \ t0  -> (return (fst t0))));;in res2');
 result :: (Eff r (Either String Integer ))

@@ -25,9 +25,6 @@ res2 = fst (runState (checkSum (sumOfAList
 
 
 
-ok:: State Integer a -> Except e a -> m a ; 
-ok ms me = return 1 \n
-
 result:: Either String Integer ;
 result = runExcept res2 
 
