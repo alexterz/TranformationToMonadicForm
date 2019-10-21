@@ -9,16 +9,20 @@ import Control.Eff.State.Lazy
 import Control.Eff.Exception
 import Data.Tuple.Sequence
 
-addStateToValue ::  (Member (State Integer) r) =>(Eff r (Integer-> (Eff r Integer)))
-addStateToValue = (return (let addStateToValue' a = (get>>=( \ s  -> (((return s)>>=( \ x3  -> (((return a)>>=( \ x4  -> (sub>>=( \ g4  -> (g4 x4)))))>>=( \ g3  -> (g3 x3)))))>>=( \ x1  -> ((return return)>>=( \ g1  -> (g1 x1)))))));;in addStateToValue'));
-divExc ::  (Member (Exc String) r) =>(Eff r (Integer-> (Eff r (Integer-> (Eff r Integer)))))
-divExc = (return (let divExc' i j = ((return j)>>=( \ c0  -> (case c0 of 0->((return "Divide with zero")>>=( \ e2  -> (throwError e2))); x->(((return x)>>=( \ x4  -> (((return i)>>=( \ x5  -> (division>>=( \ g5  -> (g5 x5)))))>>=( \ g4  -> (g4 x4)))))>>=( \ x2  -> ((return return)>>=( \ g2  -> (g2 x2))))); )));;in (mConvert1 divExc')));
-res ::  (Member (Exc String) r) =>(Eff r Integer)
-res = (let res' = (((return 1)>>=( \ s1  -> ((runState s1) ((return 1)>>=( \ x2  -> (((return 5)>>=( \ x3  -> (totalTest>>=( \ g3  -> (g3 x3)))))>>=( \ g2  -> (g2 x2))))))))>>=( \ t0  -> (return (fst t0))));;in res');
+checkNum ::  (Member (Exc String) r) =>(Eff r (Integer-> (Eff r Integer)))
+checkNum = (return (let checkNum' num = ((return num)>>=( \ c0  -> (case c0 of 0->((return "The list contains at least one zero element")>>=( \ e2  -> (throwError e2))); x->(return x); )));;in checkNum'));
+checkSum ::  (Member (Exc String) r) =>(Eff r (Integer-> (Eff r Integer)))
+checkSum = (return (let checkSum' sum = ((return sum)>>=( \ c0  -> (case c0 of 10->((return "Total sum is exactly ten")>>=( \ e2  -> (throwError e2))); x->(return x); )));;in checkSum'));
+map' :: (Eff r ((a-> (Eff r b))-> (Eff r ([a]-> (Eff r [b])))))
+map' = (return (let map'' f [] = (sequence []);map'' f (x : xs) = (((return xs)>>=( \ x2  -> (((return f)>>=( \ x3  -> (map'>>=( \ g3  -> (g3 x3)))))>>=( \ g2  -> (g2 x2)))))>>=( \ x1  -> ((((return x)>>=( \ x3  -> ((return f)>>=( \ g3  -> (g3 x3)))))>>=( \ x2  -> (cons>>=( \ g2  -> (g2 x2)))))>>=( \ g1  -> (g1 x1)))));;in (mConvert1 map'')));
+ok ::  (Member (State Integer) r, Member (Exc e) r) =>(Eff r ((Eff r a)-> (Eff r ((Eff r a)-> (Eff r a)))))
+ok = (return (let ok' ms me = ((return 1)>>=( \ x0  -> ((return return)>>=( \ g0  -> (g0 x0)))));;in (mConvert1 ok')));
+res2 ::  (Member (Exc String) r) =>(Eff r Integer)
+res2 = (let res2' = (((return 0)>>=( \ s1  -> ((runState s1) ((((sequence [(return 0),(return 5),(return 4)])>>=( \ x4  -> ((checkNum>>=( \ x5  -> (map'>>=( \ g5  -> (g5 x5)))))>>=( \ g4  -> (g4 x4)))))>>=( \ x3  -> (sumOfAList>>=( \ g3  -> (g3 x3)))))>>=( \ x2  -> (checkSum>>=( \ g2  -> (g2 x2))))))))>>=( \ t0  -> (return (fst t0))));;in res2');
 result :: (Eff r (Either String Integer ))
-result = (let result' = (runError res);;in result');
-totalTest ::  (Member (State Integer) r, Member (Exc String) r) =>(Eff r (Integer-> (Eff r (Integer-> (Eff r Integer)))))
-totalTest = (return (let totalTest' i j = (((return j)>>=( \ x1  -> (addStateToValue>>=( \ g1  -> (g1 x1)))))>>=( \ x  -> ((return x)>>=( \ x1  -> (((return i)>>=( \ x2  -> (divExc>>=( \ g2  -> (g2 x2)))))>>=( \ g1  -> (g1 x1)))))));;in (mConvert1 totalTest')));
+result = (let result' = (runError res2);;in result');
+sumOfAList ::  (Member (State Integer) r) =>(Eff r ([Integer]-> (Eff r Integer)))
+sumOfAList = (return (let sumOfAList' [] = get;sumOfAList' (x : xs) = (((get>>=( \ x3  -> (((return x)>>=( \ x4  -> (plus>>=( \ g4  -> (g4 x4)))))>>=( \ g3  -> (g3 x3)))))>>=( \ s1  -> (put s1)))>>=( \ z  -> ((return xs)>>=( \ x1  -> (sumOfAList>>=( \ g1  -> (g1 x1)))))));;in sumOfAList'));
 
 main::IO ()
 main= putStrLn $show $run $result

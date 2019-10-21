@@ -1,25 +1,34 @@
+map' :: (a -> b) -> [a] -> [b] ;
+map' f [] = [] ;
+map' f (x:xs) = (f x) : (map' f xs) \n
 
-divExc:: Integer -> Integer -> Except String Integer;
-divExc i j= 
-  case j of
-    0 -> throwError "Divide with zero" ;
-    x -> return (i `div` x) \n
+checkNum:: Integer -> Except String Integer; 
+checkNum num = 
+    case num of 
+     0 -> throwError "The list contains at least one zero element" ;
+     x -> x \n
+
+checkSum:: Integer -> Except String Integer; 
+checkSum sum = 
+   case sum of 
+    10 -> throwError "Total sum is exactly ten" ;
+    x  -> x \n
+
+sumOfAList:: [Integer]-> State Integer Integer;
+sumOfAList [] = get;
+sumOfAList (x:xs) =  put (x+get)>>= (\z -> (sumOfAList xs))\n
 
 
-addStateToValue:: Integer ->State Integer Integer ;
-addStateToValue a = get >>= (\s-> return (a+s))\n
-
-
-totalTest::Monad m =>Integer -> Integer -> m Integer ;
-totalTest i j = (addStateToValue j) >>= (\x->divExc i x) \n
+res2::Monad m => m Integer;
+res2 = fst (runState (checkSum (sumOfAList
+	(map' checkNum [0,5,4]))) 0) \n
 
 
 
-res::Monad m => m Integer;
-res = (fst (runState (totalTest 5 0) 0))\n
-
+ok:: State Integer a -> Except e a -> m a ; 
+ok ms me = return 1 \n
 
 result:: Either String Integer ;
-result = runExcept res 
+result = runExcept res2 
 
 

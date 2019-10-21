@@ -29,7 +29,7 @@ process input = do
                         where ast' = sortOn (\(d@(WithSign (ContSignature name _ _) _)) -> name) ast --show ast ++"\n"++ 
  
 execPrint :: [AllDclr]-> String
-execPrint ast = runPrint ast "\n"--("{--Syntax Dclr: " ++ show ast ++ "--}\n") ++(runPrint ast)++ "\n" 
+execPrint ast = runPrint ast "\n"--"{--Syntax Dclr: " ++ show ast ++ "--}\n" ++ (runPrint ast "\n")++ "\n" 
 
 execTransformation :: [AllDclr]-> (String)
 execTransformation ast = runPrint transformated "\n" --("{--"++show (runTransformation ast)) ++"--}\n" ++(runPrint transformed) --
